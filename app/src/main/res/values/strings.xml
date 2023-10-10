@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">FlapTrack</string>
+    <string name="title_activity_login">LoginActivity</string>
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password</string>
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="welcome">"Welcome !"</string>
+    <string name="invalid_username">Not a valid username</string>
+    <string name="invalid_password">Password must be >5 characters</string>
+    <string name="login_failed">"Login failed"</string>
+    <string name="title">"Select Metric"</string>
+    <string name="cancel">"Set default"</string>
+    <string name="about">"
+        Bird tracking is a fascinating endeavor that allows enthusiasts and researchers to explore the mysterious lives of our feathered friends. With the help of modern technology and dedicated apps like FlapTrack, bird tracking has evolved into a dynamic and accessible hobby.
+
+        FlapTrack involves documenting bird species, behaviors, and migration patterns, often using mobile applications like BirdTrack to record sightings, locations, and other pertinent data. This information contributes to the scientific understanding of avian biodiversity, migratory routes, and population health.
+
+        Whether you're a casual observer or a passionate ornithologist, bird tracking offers an immersive experience that connects you to nature's wonders. Join the growing community of bird trackers and contribute to our collective knowledge while gaining a deeper appreciation for the beauty and complexity of the avian world. Bird tracking is not just a hobby; it's a journey of discovery and conservation."</string>
+
+    <string name="ok">"Set default"</string>
+</resources>

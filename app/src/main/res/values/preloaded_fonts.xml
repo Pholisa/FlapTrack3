@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="preloaded_fonts" translatable="false">
+        <item>@font/alegreya_sans_thin</item>
+        <item>@font/allura</item>
+        <item>@font/arapey</item>
+        <item>@font/architects_daughter</item>
+        <item>@font/artifika</item>
+        <item>@font/bad_script</item>
+        <item>@font/balthazar</item>
+        <item>@font/candal</item>
+        <item>@font/courgette</item>
+        <item>@font/rock_salt</item>
+        <item>@font/space_grotesk_light</item>
+        <item>@font/unna</item>
+        <item>@font/voltaire</item>
+        <item>@font/yrsa_light</item>
+    </array>
+</resources>

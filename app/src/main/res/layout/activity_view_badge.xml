@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/birdbackground"
+    >
+
+    <LinearLayout
+        android:id="@+id/tvBadge"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/aboutTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Get Your Badge!!!"
+        android:textSize="24sp"
+        android:gravity="center"
+        android:padding="16dp"
+        android:textStyle="bold"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="650dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:id="@+id/contentLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Badge 1 -->
+            <ImageView
+                android:id="@+id/badgeImageView"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="32dp"
+                android:contentDescription="User Badge"
+                android:src="@drawable/blackbadge" />
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/badgeImageView"
+                android:layout_marginTop="16dp"
+                style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                android:progress="60"
+                android:max="100"
+                android:padding="4dp" />
+
+            <TextView
+                android:id="@+id/badgeRequirementTextView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:text="To earn this badge, capture 10 birds."
+                android:textSize="18sp"
+                android:textAlignment="center" />
+
+            <TextView
+                android:id="@+id/badgeInfoTextView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/progressBar"
+                android:layout_marginTop="16dp"
+                android:text="You earned a new badge!"
+                android:textSize="18sp"
+                android:textAlignment="center"/>
+
+
+            <Button
+                android:id="@+id/claimBadgeButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/badgeInfoTextView"
+                android:layout_centerHorizontal="true"
+                android:backgroundTint="@android:color/black"
+                android:layout_marginTop="16dp"
+                android:text="Claim Badge"
+                android:textSize="18sp" />
+
+            <!-- Badge 2 -->
+            <ImageView
+                android:id="@+id/badgeImageViewTwo"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="32dp"
+                android:contentDescription="User Badge"
+                android:src="@drawable/redbadge" />
+
+            <ProgressBar
+                android:id="@+id/progressBarTwo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/badgeImageViewTwo"
+                android:layout_marginTop="16dp"
+                style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                android:progress="60"
+                android:max="100"
+                android:padding="4dp" />
+
+            <TextView
+                android:id="@+id/badgeRequirementTextViewTwo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:text="To earn this badge, capture 20 birds."
+                android:textSize="18sp"
+                android:textAlignment="center" />
+
+            <TextView
+                android:id="@+id/badgeInfoTextViewTwo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/progressBarTwo"
+                android:layout_marginTop="16dp"
+                android:text="You earned a new badge!"
+                android:textSize="18sp"
+                android:textAlignment="center"/>
+
+            <Button
+                android:id="@+id/claimBadgeButtonTwo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/badgeInfoTextViewTwo"
+                android:layout_centerHorizontal="true"
+                android:backgroundTint="@android:color/black"
+                android:layout_marginTop="16dp"
+                android:text="Claim Badge"
+                android:textSize="18sp" />
+
+            <!-- Badge 3 -->
+            <ImageView
+                android:id="@+id/badgeImageViewThree"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="32dp"
+                android:contentDescription="User Badge"
+                android:src="@drawable/bluebadge" />
+
+            <ProgressBar
+                android:id="@+id/progressBarThree"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/badgeImageViewThree"
+                android:layout_marginTop="16dp"
+                style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                android:progress="60"
+                android:max="100"
+                android:padding="4dp" />
+
+            <TextView
+                android:id="@+id/badgeRequirementTextViewThree"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:text="To earn this badge, capture 50 birds."
+                android:textSize="18sp"
+                android:textAlignment="center" />
+
+            <TextView
+                android:id="@+id/badgeInfoTextViewThree"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/progressBarThree"
+                android:layout_marginTop="16dp"
+                android:text="You earned a new badge!"
+                android:textSize="18sp"
+                android:textAlignment="center"/>
+
+            <Button
+                android:id="@+id/claimBadgeButtonThree"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/badgeInfoTextViewThree"
+                android:layout_centerHorizontal="true"
+                android:backgroundTint="@android:color/black"
+                android:layout_marginTop="16dp"
+                android:text="Claim Badge"
+                android:textSize="18sp" />
+
+        </LinearLayout>
+
+</ScrollView>
+    </LinearLayout>
+
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigationView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        app:menu="@menu/bottom_nav"/>
+</RelativeLayout>

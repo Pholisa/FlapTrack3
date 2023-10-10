@@ -1,0 +1,84 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/birdbackground"
+    tools:context=".ChangeMetric">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="30dp"
+        app:cardCornerRadius="30dp"
+        app:cardElevation="20dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="24dp">
+
+            <TextView
+                android:id="@+id/tvGoals"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Select Your Metric"
+                android:textAlignment="center"
+                android:textColor="@color/black"
+                android:textSize="25sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvMetricData"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="kilometres/miles"
+                android:textAlignment="center"
+                android:textColor="@color/black"
+                android:textSize="15sp"/>
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switch1"
+                android:layout_width="65dp"
+                android:layout_height="50dp"
+                android:layout_gravity="center"
+                android:drawablePadding="8dp"
+                android:padding="8dp"
+                android:scrollbarSize="10dp" />
+
+
+                <TextView
+                    android:id="@+id/tvSelectedMetric"
+                    android:text=""
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/btnSetMax"
+                    style="?attr/materialButtonOutlinedStyle"
+                    android:layout_width="290dp"
+                    android:layout_height="70dp"
+                    android:layout_marginTop="30dp"
+                    android:text="Set Metric"
+                    android:textSize="18sp"
+                    app:cornerRadius="30dp" />
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigationView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        app:menu="@menu/bottom_nav"/>
+
+</RelativeLayout>
