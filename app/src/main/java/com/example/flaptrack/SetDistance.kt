@@ -30,7 +30,7 @@ class SetDistance : AppCompatActivity() {
                 }
 
                 R.id.idHome -> {
-                    val intent = Intent(this, Search::class.java)
+                    val intent = Intent(this, MapUI::class.java)
                     startActivity(intent)
                 }
 

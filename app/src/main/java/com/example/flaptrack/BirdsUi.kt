@@ -67,12 +67,14 @@ class BirdsUi : AppCompatActivity() {
         //This will account for event clicking of the navigation bar (similar to if statement format)
         binding.bottomNavigationView.setOnItemSelectedListener {item ->
             when (item.itemId) {
+                /*
                 R.id.idBirds -> {
                     val intent = Intent(this, BirdsUi::class.java)
                     startActivity(intent)
                 }
+                 */
                 R.id.idHome -> {
-                    val intent = Intent(this, Search::class.java)
+                    val intent = Intent(this, MapUI::class.java)
                     startActivity(intent)
                 }
                 R.id.idAccount -> {

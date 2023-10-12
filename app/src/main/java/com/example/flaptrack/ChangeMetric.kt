@@ -26,7 +26,7 @@ class ChangeMetric : AppCompatActivity() {
                     startActivity(intent)
                 }
                 R.id.idHome -> {
-                    val intent = Intent(this, Search::class.java)
+                    val intent = Intent(this, MapUI::class.java)
                     startActivity(intent)
                 }
                 R.id.idAccount -> {
