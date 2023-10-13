@@ -6,6 +6,7 @@ import android.location.Location
 import android.os.Bundle
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.FragmentActivity
+import com.example.flaptrack.databinding.ActivityAboutBinding
 import com.example.flaptrack.databinding.ActivityMapUiBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -19,7 +20,6 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import kotlin.concurrent.thread
-import kotlin.math.*
 
 class MapUI : FragmentActivity(), OnMapReadyCallback {
 
@@ -30,8 +30,6 @@ class MapUI : FragmentActivity(), OnMapReadyCallback {
     var hotspotList = mutableListOf<HotspotData>()
 
     private lateinit var binding: ActivityMapUiBinding
-    private var userLocation: LatLng = LatLng(0.0, 0.0) // Initialize with a default value
-    private val maxDistanceKm = 10.0 // Set the maximum distance in kilometers
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,56 +78,24 @@ class MapUI : FragmentActivity(), OnMapReadyCallback {
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
                 location?.let {
-                    // Update user's location
-                    userLocation = LatLng(it.latitude, it.longitude)
-
                     // Add a marker at the device's current location
+                    val userLocation = LatLng(it.latitude, it.longitude)
                     val markerOptions = MarkerOptions()
                     markerOptions.position(userLocation)
                     mMap.addMarker(markerOptions)
 
                     // Move the camera to the device's current location
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15f))
-
-                    // Filter and display hotspots
-                    filterAndDisplayHotspots()
                 }
             }
     }
 
-    private fun filterAndDisplayHotspots() {
-        val filteredHotspots = hotspotList.filter { hotspot ->
-            val distance = calculateDistance(userLocation, LatLng(hotspot.lat ?: 0.0, hotspot.lng ?: 0.0))
-            distance <= maxDistanceKm
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == LOCATION_PERMISSION_REQUEST && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            // Permission granted, show the device's current location on the map
+            onMapReady(mMap)
         }
-
-
-        filteredHotspots.forEach { hotspot ->
-            val lat = hotspot.lat ?: 0.0
-            val lng = hotspot.lng ?: 0.0
-            val hotspotLocation = LatLng(lat, lng)
-            val markerOptions = MarkerOptions()
-                .position(hotspotLocation)
-                .title(hotspot.locName)
-            mMap.addMarker(markerOptions)
-        }
-
-    }
-
-    // Haversine formula to calculate distance between two points
-    private fun calculateDistance(p1: LatLng, p2: LatLng): Double {
-        val lat1 = p1.latitude
-        val lon1 = p1.longitude
-        val lat2 = p2.latitude
-        val lon2 = p2.longitude
-        val r = 6371.0 // Earth's radius in kilometers
-        val latDistance = Math.toRadians(lat2 - lat1)
-        val lonDistance = Math.toRadians(lon2 - lon1)
-        val a = sin(latDistance / 2) * sin(latDistance / 2) +
-                cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) *
-                sin(lonDistance / 2) * sin(lonDistance / 2)
-        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
-        return r * c
     }
 
     private fun navigationBar() {
@@ -151,7 +117,7 @@ class MapUI : FragmentActivity(), OnMapReadyCallback {
         }
     }
 
-    private fun consumeJson(hotspotJSON: String?) {
+    fun consumeJson(hotspotJSON: String?) {
         if (hotspotJSON != null) {
             try {
                 val rootHotspotData = JSONArray(hotspotJSON)
@@ -169,22 +135,30 @@ class MapUI : FragmentActivity(), OnMapReadyCallback {
                     }
 
                     if (hotspot.has("lng")) {
-                        hotspotObject.lng = hotspot.getDouble("lng")
-                    }
+                        val lng = hotspot.getDouble("lng")
+                        val lat = hotspotObject.lat
 
-                    // Add the hotspotObject to the list
-                    hotspotList.add(hotspotObject)
+                        // Ensure lat and lng are not null before adding the marker
+                        if (lat != null && lng != null) {
+                            val hotspotLocation = LatLng(lat, lng)
+                            val markerOptions = MarkerOptions()
+                                .position(hotspotLocation)
+                                .title(hotspotObject.locName)
+                            mMap.addMarker(markerOptions)
+                        }
+
+                        // Add the hotspotObject to the list if desired
+                        hotspotList.add(hotspotObject)
+                    }
                 }
 
-            } catch (e: JSONException)
-            {
+            } catch (e: JSONException) {
                 // Handle JSON parsing errors
                 e.printStackTrace()
             }
-        }
-        else
-        {
+        } else {
             // Handle the case where hotspotJSON is null
         }
     }
+
 }

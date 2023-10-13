@@ -17,6 +17,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+
     <fragment
         android:id="@+id/google_map"
         android:layout_width="0dp"
