@@ -3,6 +3,9 @@ package com.example.flaptrack
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Switch
+import android.widget.TextView
+import androidx.appcompat.widget.SwitchCompat
 import com.example.flaptrack.databinding.ActivityAboutBinding
 import com.example.flaptrack.databinding.ActivityChangeMetricBinding
 
@@ -13,7 +16,24 @@ class ChangeMetric : AppCompatActivity() {
         binding = ActivityChangeMetricBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        //Calling navigation bar metric
         navigationBar()
+
+        var switchMetric = findViewById<SwitchCompat>(R.id.switch1)
+        var metric = findViewById<TextView>(R.id.tvMetric)
+
+        switchMetric.setOnCheckedChangeListener { compoundButton, onSwitch ->
+
+            if(onSwitch)
+            {
+                metric.text = "miles"
+            }
+            else
+            {
+                metric.text = "kilometres"
+            }
+
+        }
     }
 
     private fun navigationBar()

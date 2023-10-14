@@ -5,13 +5,12 @@
     <item android:title="MyBirds"
         android:id="@+id/idBirds"
         android:icon="@drawable/bird2"/>
-    <item android:title="Search"
+    <item android:title="Hotspots"
         android:id="@+id/idHome"
-        android:icon="@drawable/baseline_search_24"/>
+        android:icon="@drawable/mapsicon"/>
     <item android:title="Account"
         android:id="@+id/idAccount"
         android:icon="@drawable/baseline_manage_accounts_24"/>
-
 
 
 </menu>
