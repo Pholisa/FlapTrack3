@@ -77,13 +77,38 @@
                     android:textSize="18sp" />
 
                 <TextView
-                    android:id="@+id/tvLoginRedirectText2"
+                    android:id="@+id/tvRegisterRedirectText2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_toEndOf="@id/tvLoginRedirectText"
                     android:text="Register"
                     android:textColor="@color/design_default_color_error"
                     android:textSize="18sp" />
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="8dp"
+                    android:padding="8dp">
+
+                    <TextView
+                        android:id="@+id/tvForgotRedirectText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Forgot Password? "
+                        android:textSize="18sp" />
+
+                    <TextView
+                        android:id="@+id/tvForgotRedirectText2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_toEndOf="@id/tvForgotRedirectText"
+                        android:text="Reset"
+                        android:textColor="@color/design_default_color_error"
+                        android:textSize="18sp" />
+
+                </RelativeLayout>
             </RelativeLayout>
         </LinearLayout>
     </RelativeLayout>
