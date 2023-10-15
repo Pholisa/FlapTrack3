@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "116978537247",
+    "firebase_url": "https://flaptrack-45575-default-rtdb.firebaseio.com",
+    "project_id": "flaptrack-45575",
+    "storage_bucket": "flaptrack-45575.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:116978537247:android:299bea7a32c32f4308d62a",
+        "android_client_info": {
+          "package_name": "com.example.flaptrack"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAb-BvrDJMn47mVMb4D0YgvRJ2NYzFWpH0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
