@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import com.example.flaptrack.databinding.ActivityRegisterBinding
 import com.google.firebase.auth.FirebaseAuth
@@ -14,11 +15,7 @@ import com.google.firebase.ktx.Firebase
 class Register : AppCompatActivity() {
     private lateinit var binding: ActivityRegisterBinding
     private lateinit var firebaseAuthentication: FirebaseAuth
-
     private val theDatabase = Firebase.database
-    private val userID = FirebaseAuth.getInstance().currentUser?.uid
-    private val myReference = theDatabase.getReference("users").child(userID!!).child("Personal Details")
-
     private lateinit var database: DatabaseReference
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,8 +24,21 @@ class Register : AppCompatActivity() {
         setContentView(binding.root)
 
         firebaseAuthentication = FirebaseAuth.getInstance()
+        val userID = FirebaseAuth.getInstance().currentUser?.uid
+        val myReference = userID?.let {
+            theDatabase.getReference("users").child(it).child("Personal Details")
+        }
 
-        binding.btnSignUp.setOnClickListener{
+        //Logging in text view set on click listener
+        var login = findViewById<TextView>(R.id.tvLoginRedirectText2)
+        login.setOnClickListener {
+            val loginIntent = Intent(this, Login::class.java)
+            startActivity(loginIntent)
+        }
+
+        //Signing up
+        var signUp = findViewById<Button>(R.id.btnSignUp)
+        signUp.setOnClickListener {
             val username = binding.edEmail.text.toString()
             val surname = binding.edlastName.text.toString()
             val name = binding.edFirstname.text.toString()
@@ -36,24 +46,19 @@ class Register : AppCompatActivity() {
             val password = binding.edPassword.text.toString()
             val confirmPassword = binding.edPasswordConfirm.text.toString()
 
-
-
-            if(username.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty())
+            if (username.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty())
             {
-                if(password == confirmPassword)
+                if (password == confirmPassword)
                 {
                     firebaseAuthentication.createUserWithEmailAndPassword(username, password).addOnCompleteListener {
-                        if(it.isSuccessful)
+                        if (it.isSuccessful)
                         {
-
-                            val User = StoringPersonalInfo(name, surname, age)
-                            myReference.setValue(User).addOnSuccessListener {
+                            val user = StoringPersonalInfo(name, surname, age)
+                            myReference?.setValue(user)?.addOnSuccessListener {
                                 Toast.makeText(this, "Information Saved", Toast.LENGTH_SHORT).show()
-
                                 val intent = Intent(this, Login::class.java)
                                 startActivity(intent)
                             }
-
                         }
                         else
                         {
@@ -71,10 +76,8 @@ class Register : AppCompatActivity() {
                 Toast.makeText(this, "Field cannot be empty", Toast.LENGTH_SHORT).show()
             }
         }
-        binding.tvLoginRedirectText.setOnClickListener {
-            val loginIntent = Intent(this, Login::class.java)
-            startActivity(loginIntent)
-        }
-    }
 
+
+    }
 }
+

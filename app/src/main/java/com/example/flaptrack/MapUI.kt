@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.SearchView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.app.ActivityCompat
@@ -37,6 +38,9 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
     //private var searchQuery: String = ""
 
     var hotspotList = mutableListOf<HotspotData>()
+    private var userLocation: LatLng = LatLng(0.0, 0.0) // Initialize with latitude and longitude values
+
+
 
     private lateinit var binding: ActivityMapUiBinding
 
@@ -61,14 +65,10 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
 
         //Drawing the direction
 
-        //Bottom sheet
-        val sheet1 = findViewById<FrameLayout>(R.id.sheet)
-        BottomSheetBehavior.from(sheet1).apply{
-            peekHeight=200
-            this.state=BottomSheetBehavior.STATE_COLLAPSED
-        }
+
     }
 
+    //----------------------------------------------------------------------------------------------
     override fun onMapReady(googleMap: GoogleMap) {
 
         val maxDist = intent.getStringExtra("value_key")
@@ -92,7 +92,7 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
                 location?.let {
                     // Add a marker at the device's current location
                     //val userLocation = LatLng(it.latitude, it.longitude) //actual device location uncomment this
-                    val userLocation = LatLng(-33.8970590380015, 18.48906600246067) //hard coded location to finish app from
+                     userLocation = LatLng(-33.8970590380015, 18.48906600246067) //hard coded location to finish app from
                     val markerOptions = MarkerOptions()
                     markerOptions.position(userLocation)
                     markerOptions.title("Your Locationnn")
@@ -126,24 +126,35 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
                 }
             }
     }
+    //----------------------------------------------------------------------------------------------
 
+    //----------------------------------------------------------------------------------------------
     //Markers listeners when a user clicks on a hotspot
     override fun onMarkerClick(p0: Marker): Boolean {
-        showToast("Hotspot name is: " + p0.title)
+       // showToast("Hotspot name is: " + p0.title)
 
         // Bottom sheet
         val sheet1 = findViewById<FrameLayout>(R.id.sheet)
+        val locatName = findViewById<TextView>(R.id.tvLocatName)
+        val locatDistance= findViewById<TextView>(R.id.tvLocatDistance)
+
+        var location = searchArea(userLocation,p0.position)
+
         BottomSheetBehavior.from(sheet1).apply {
-            peekHeight = 0
+            peekHeight = 100
             state = BottomSheetBehavior.STATE_EXPANDED
+
+            locatName.text = p0.title
+            locatDistance.text = "${location} km"
+
         }
 
         return false
     }
+    //----------------------------------------------------------------------------------------------
 
 
-
-
+    //----------------------------------------------------------------------------------------------
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == LOCATION_PERMISSION_REQUEST && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -151,7 +162,28 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
             onMapReady(mMap)
         }
     }
+    //----------------------------------------------------------------------------------------------
 
+    //----------------------------------------------------------------------------------------------
+    private fun searchArea(myLocation: LatLng, endLocation: LatLng) :String
+    {
+        val results = FloatArray(1) // Change the array size to 1
+
+        val myLatitude = myLocation.latitude
+        val myLongitude = myLocation.longitude
+        val endLatitude = endLocation.latitude
+        val endLongitude = endLocation.longitude
+
+        Location.distanceBetween(myLatitude, myLongitude, endLatitude, endLongitude, results)
+
+        val s = String.format("%.1f",results[0]/1000)
+
+        return s
+    }
+    //----------------------------------------------------------------------------------------------
+
+    //----------------------------------------------------------------------------------------------
+    //navigation menu function
     private fun navigationBar()
     {
         binding.bottomNavigationView.setOnItemSelectedListener { item ->
@@ -171,7 +203,9 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
             true
         }
     }
+    //----------------------------------------------------------------------------------------------
 
+    //----------------------------------------------------------------------------------------------
     private fun consumeJson(hotspotJSON: String?, userLocat: LatLng, maxDist: String?)
     {
         if (hotspotJSON != null)
@@ -239,7 +273,9 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
             // Handle the case where hotspotJSON is null
         }
     }
+    //----------------------------------------------------------------------------------------------
 
+    //----------------------------------------------------------------------------------------------
     // Function to calculate the distance between two LatLng points using the Haversine formula
     private fun calculateDistance(point1: LatLng, point2: LatLng): Double
     {
@@ -257,7 +293,9 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
 
         return radius * c
     }
+    //----------------------------------------------------------------------------------------------
 
+    //----------------------------------------------------------------------------------------------
     //search function to search for hotspot to then give directions to location
     private fun searchFunction(hotspotJSON: String?)
     {
@@ -335,7 +373,9 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
             }
         })
     }
+    //----------------------------------------------------------------------------------------------
 
+    //----------------------------------------------------------------------------------------------
     //Toast to method to make writing toast messages easier
     private fun showToast(message: String)
     {
@@ -343,3 +383,4 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
     }
 
 }
+//-------------------------------------ooo000EndOfFile000ooo----------------------------------------
