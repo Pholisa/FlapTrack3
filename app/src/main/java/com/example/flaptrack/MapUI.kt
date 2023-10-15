@@ -4,12 +4,15 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.SearchView
 import android.widget.Toast
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.app.ActivityCompat
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import com.example.flaptrack.databinding.ActivityAboutBinding
+import androidx.fragment.app.FragmentManager
 import com.example.flaptrack.databinding.ActivityMapUiBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -18,19 +21,20 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import kotlin.concurrent.thread
-import java.util.concurrent.CompletableFuture
 
-class MapUI : FragmentActivity(), OnMapReadyCallback {
+class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
 
     private lateinit var mMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val LOCATION_PERMISSION_REQUEST = 1
-    private var searchQuery: String = ""
+    //private var searchQuery: String = ""
 
     var hotspotList = mutableListOf<HotspotData>()
 
@@ -41,13 +45,10 @@ class MapUI : FragmentActivity(), OnMapReadyCallback {
         binding = ActivityMapUiBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
-
         // Calling the navigation bar function
         navigationBar()
 
-        val mapFragment =
-            supportFragmentManager.findFragmentById(R.id.google_map) as SupportMapFragment
+        val mapFragment = supportFragmentManager.findFragmentById(R.id.google_map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -58,6 +59,14 @@ class MapUI : FragmentActivity(), OnMapReadyCallback {
             startActivity(intent)
         }
 
+        //Drawing the direction
+
+        //Bottom sheet
+        val sheet1 = findViewById<FrameLayout>(R.id.sheet)
+        BottomSheetBehavior.from(sheet1).apply{
+            peekHeight=200
+            this.state=BottomSheetBehavior.STATE_COLLAPSED
+        }
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -94,28 +103,46 @@ class MapUI : FragmentActivity(), OnMapReadyCallback {
 
                     // Initialize NetworkUtil
                     val networkUtil = NetworkUtil()
-                    //Thread
+                    // Thread
                     thread {
                         val hotspot = try {
                             networkUtil.buildURLForEbird()?.readText()
-                        } catch (e: Exception) {
+                        }
+                        catch (e: Exception)
+                        {
                             // Handle the error, e.g., display a message to the user
+                            runOnUiThread {
+                                showToast("Error: Failed to fetch hotspot data.")
+                            }
                             return@thread
                         }
 
                         runOnUiThread {
-
                             // Pass the userLocation to consumeJson
-                            consumeJson(hotspot,userLocation,maxDist)
+                            consumeJson(hotspot, userLocation, maxDist)
+                            searchFunction(hotspot)
                         }
                     }
                 }
             }
-
-        //calling search function
-        searchFunction()
-
     }
+
+    //Markers listeners when a user clicks on a hotspot
+    override fun onMarkerClick(p0: Marker): Boolean {
+        showToast("Hotspot name is: " + p0.title)
+
+        // Bottom sheet
+        val sheet1 = findViewById<FrameLayout>(R.id.sheet)
+        BottomSheetBehavior.from(sheet1).apply {
+            peekHeight = 0
+            state = BottomSheetBehavior.STATE_EXPANDED
+        }
+
+        return false
+    }
+
+
+
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
@@ -125,7 +152,8 @@ class MapUI : FragmentActivity(), OnMapReadyCallback {
         }
     }
 
-    private fun navigationBar() {
+    private fun navigationBar()
+    {
         binding.bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.idBirds -> {
@@ -144,10 +172,10 @@ class MapUI : FragmentActivity(), OnMapReadyCallback {
         }
     }
 
-
-
-    private fun consumeJson(hotspotJSON: String?, userLocat: LatLng, maxDist: String?) {
-        if (hotspotJSON != null) {
+    private fun consumeJson(hotspotJSON: String?, userLocat: LatLng, maxDist: String?)
+    {
+        if (hotspotJSON != null)
+        {
             try {
                 val rootHotspotData = JSONArray(hotspotJSON)
 
@@ -155,44 +183,49 @@ class MapUI : FragmentActivity(), OnMapReadyCallback {
                 val maxDistance = 5.0 // Change this value to your desired maximum distance
 
 
-
                 val userLocation = userLocat
 
-                    for (i in 0 until rootHotspotData.length()) {
+                    for (i in 0 until rootHotspotData.length())
+                    {
                                 val hotspotObject = HotspotData()
                                 val hotspot = rootHotspotData.getJSONObject(i)
 
-                                if (hotspot.has("locName")) {
+                                if (hotspot.has("locName"))
+                                {
                                     hotspotObject.locName = hotspot.getString("locName")
                                 }
 
-                                if (hotspot.has("lat")) {
+                                if (hotspot.has("lat"))
+                                {
                                     hotspotObject.lat = hotspot.getDouble("lat")
                                 }
 
-                                if (hotspot.has("lng")) {
+                                if (hotspot.has("lng"))
+                                {
                                     val lng = hotspot.getDouble("lng")
                                     val lat = hotspotObject.lat
 
                                     // Ensure lat and lng are not null before adding the marker
-                                    if (lat != null && lng != null) {
+                                    if (lat != null && lng != null)
+                                    {
                                         val hotspotLocation = LatLng(lat, lng)
 
                                         // Calculate the distance between the user's location and the hotspot
                                         val distance = calculateDistance(userLocation, hotspotLocation)
 
                                         // Check if the hotspot is within the specified distance
-                                        if (distance <= maxDistance) {
+                                        if (distance <= maxDistance)
+                                        {
                                             val markerOptions = MarkerOptions()
                                                 .position(hotspotLocation)
                                                 .title(hotspotObject.locName)
                                             mMap.addMarker(markerOptions)
+                                            mMap.setOnMarkerClickListener(this)
 
                                             // Adding the hotspotObject to the list
                                             hotspotList.add(hotspotObject)
                                         }
                                     }
-
                         }
                     }
             } catch (e: JSONException)
@@ -200,14 +233,16 @@ class MapUI : FragmentActivity(), OnMapReadyCallback {
                 // Handle JSON parsing errors
                 e.printStackTrace()
             }
-        } else
+        }
+        else
         {
             // Handle the case where hotspotJSON is null
         }
     }
 
     // Function to calculate the distance between two LatLng points using the Haversine formula
-    private fun calculateDistance(point1: LatLng, point2: LatLng): Double {
+    private fun calculateDistance(point1: LatLng, point2: LatLng): Double
+    {
         val radius = 6371.0 // Earth's radius in kilometers
         val lat1 = Math.toRadians(point1.latitude)
         val lat2 = Math.toRadians(point2.latitude)
@@ -224,7 +259,8 @@ class MapUI : FragmentActivity(), OnMapReadyCallback {
     }
 
     //search function to search for hotspot to then give directions to location
-    private fun searchFunction() {
+    private fun searchFunction(hotspotJSON: String?)
+    {
         val searchLocation = findViewById<SearchView>(R.id.searchView1)
 
         searchLocation.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
@@ -233,19 +269,61 @@ class MapUI : FragmentActivity(), OnMapReadyCallback {
                     return false
                 }
 
-                // Search for the entered location in the hotspotList
-                val locationToSearch = query.toLowerCase()
-                val foundHotspot = hotspotList.find { hotspot ->
-                    hotspot.locName?.toLowerCase() == locationToSearch
-                }
+                val searchQuery = searchLocation.query.toString().toLowerCase()
 
-                if (foundHotspot != null) {
-                    // Location found, perform actions
-                    showToast("Hotspot found: ${foundHotspot.locName}")
-                    // You can perform other actions here
-                } else {
-                    // Location not found, display a message
-                    showToast("Hotspot not found")
+                var matchingLat: Double? = null
+                var matchingLng: Double? = null
+
+                if (hotspotJSON != null)
+                {
+                    try
+                    {
+                        val rootHotspotData = JSONArray(hotspotJSON)
+
+                        //Going through alll objects to search for matching location
+                        for (i in 0 until rootHotspotData.length())
+                        {
+                            val hotspot = rootHotspotData.getJSONObject(i)
+
+                            // Check if the hotspot JSON object contains the desired fields
+                            if (hotspot.has("locName") && hotspot.has("lat") && hotspot.has("lng"))
+                            {
+                                val locName = hotspot.getString("locName").toLowerCase()
+                                val lat = hotspot.getDouble("lat")
+                                val lng = hotspot.getDouble("lng")
+
+                                //Check if the current hotspot matches the search query
+                                if (locName == searchQuery)
+                                {
+                                    matchingLat = lat
+                                    matchingLng = lng
+                                    break // Exit the loop if a match is found
+                                }
+                            }
+                        }
+
+                        if(matchingLat != null && matchingLng != null)
+                        {
+                            showToast("Matching hotspot found: lat=$matchingLat, lng=$matchingLng of $searchQuery")
+
+                            // You can perform further actions here, such as moving the camera
+                            val hotspotLatLng = LatLng(matchingLat, matchingLng)
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(hotspotLatLng, 15f))
+                        }
+                        else
+                        {
+                            showToast("No matching hotspot found")
+                        }
+
+                    } catch (e: JSONException)
+                    {
+                        e.printStackTrace()
+                    }
+                }
+                else
+                {
+                    // Handle the case where hotspotJSON is null
+                    showToast("Unable to display hotspots at the moment")
                 }
 
                 return true
@@ -258,7 +336,9 @@ class MapUI : FragmentActivity(), OnMapReadyCallback {
         })
     }
 
-    private fun showToast(message: String) {
+    //Toast to method to make writing toast messages easier
+    private fun showToast(message: String)
+    {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
