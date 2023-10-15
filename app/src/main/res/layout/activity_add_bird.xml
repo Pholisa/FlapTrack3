@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/backgroundtransparent"
+    tools:context=".AddBird">
+
+
+
+    <TextView
+        android:id="@+id/textViewAddBird"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add New Bird"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.432"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+    <EditText
+        android:id="@+id/edBirdName"
+        android:layout_width="286dp"
+        android:layout_height="52dp"
+        android:layout_marginTop="180dp"
+        android:hint="Bird Name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.496"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewAddBird" />
+
+    <EditText
+        android:id="@+id/edBirdSpecies"
+        android:layout_width="285dp"
+        android:layout_height="53dp"
+        android:layout_marginTop="12dp"
+        android:hint="Bird Species"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.492"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edBirdName" />
+
+    <ImageView
+        android:id="@+id/ivImage"
+        android:layout_width="152dp"
+        android:layout_height="151dp"
+        android:src="@drawable/baseline_image_24"
+        tools:layout_editor_absoluteX="115dp"
+        tools:layout_editor_absoluteY="44dp"
+        tools:ignore="MissingConstraints"/>
+
+
+    <Button
+        android:id="@+id/btnCamera"
+        android:layout_width="34dp"
+        android:layout_height="34dp"
+        android:layout_marginTop="100dp"
+        android:background="@drawable/baseline_photo_camera_24"
+        android:color="@color/grey"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.421"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edBirdSpecies" />
+
+    <Button
+        android:id="@+id/btnGallery"
+        android:layout_width="34dp"
+        android:layout_height="34dp"
+        android:background="@drawable/baseline_image_24"
+        tools:ignore="MissingConstraints"
+        tools:layout_editor_absoluteX="207dp"
+        tools:layout_editor_absoluteY="430dp" />
+
+    <Button
+        android:id="@+id/btnSave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Save"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.049"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:ignore="MissingConstraints"
+        tools:layout_editor_absoluteY="453dp" />
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigationView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:menu="@menu/bottom_nav">
+
+    </com.google.android.material.bottomnavigation.BottomNavigationView>
+
+    <TextView
+        android:id="@+id/tvDate"
+        android:layout_width="138dp"
+        android:layout_height="36dp"
+        android:layout_marginTop="4dp"
+        android:hint="dd/mm/yyyy"
+        android:textSize="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.259"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/edBirdSpecies" />
+
+    <Button
+        android:id="@+id/btnDate"
+        android:layout_width="34dp"
+        android:layout_height="34dp"
+        android:background="@drawable/baseline_calendar_month_24"
+        tools:ignore="MissingConstraints"
+        tools:layout_editor_absoluteX="233dp"
+        tools:layout_editor_absoluteY="336dp" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
