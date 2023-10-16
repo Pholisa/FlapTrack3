@@ -1,6 +1,7 @@
 package com.example.flaptrack
 
 import android.Manifest
+import android.app.Activity
 import android.app.DatePickerDialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
@@ -14,12 +15,14 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import coil.load
 import coil.transform.CircleCropTransformation
 import com.example.flaptrack.databinding.ActivityAddNewBirdBinding
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
@@ -49,13 +52,10 @@ class AddNewBird : AppCompatActivity() {
     private val userID = FirebaseAuth.getInstance().currentUser?.uid
     private val myReference = database.getReference("users").child(userID!!).child("Bird Information")
 
-    //val storage = Firebase.storage
-    private lateinit var storageRef : StorageReference
+
+    private var imageURL : String? = null
     private var imageUri: Uri?=null
 
-
-    private val cameraRequestCode = 1
-    private val galleryRequestCode = 2
 
     private var count = 0
 
@@ -64,11 +64,38 @@ class AddNewBird : AppCompatActivity() {
         binding = ActivityAddNewBirdBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        navigationBar()
 
-        storageRef = FirebaseStorage.getInstance().getReference("Images")
 
         textDate = findViewById(R.id.tvDate)
         buttonDate = findViewById(R.id.btnDate)
+
+        val activityResultLauncher = registerForActivityResult<Intent, ActivityResult>(
+            ActivityResultContracts.StartActivityForResult()
+        ){result->
+            if(result.resultCode == RESULT_OK){
+                val data = result.data
+                imageUri = data!!.data
+                binding.ivImage.setImageURI(imageUri)
+            }
+            else{
+                Toast.makeText(this@AddNewBird, "No Image Selected", Toast.LENGTH_SHORT).show()
+            }
+
+
+        }
+
+        binding.btnPickIamge.setOnClickListener{
+            val photoPicker = Intent(Intent.ACTION_PICK)
+            photoPicker.type = "image/*"
+            activityResultLauncher.launch(photoPicker)
+        }
+
+        binding.btnSave.setOnClickListener{
+
+            SavingData()
+        }
+
 
         val calendarBox = Calendar.getInstance()
         val dateBox = DatePickerDialog.OnDateSetListener { datePicker, year, month, day ->
@@ -83,57 +110,40 @@ class AddNewBird : AppCompatActivity() {
                 calendarBox.get(Calendar.DAY_OF_MONTH)
             ).show()
         }
-        val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()){
-            binding.ivImage.setImageURI(it)
-            if(it != null)
-            {
-                imageUri = it
-            }
-        }
-
-//        binding.btnCamera.setOnClickListener {
-//            cameraCheckPermission()
-//        }
-//
-//        binding.btnGallery.setOnClickListener {
-//            pickImage.launch("image/*")
-//
-//            //galleryCheckPermission()
-//        }
-        binding.btnSave.setOnClickListener {
-
-            Validation()
-
-            count++
-            val intent = Intent(this, ViewBadge :: class.java)
-            intent.putExtra("COUNT", count)
-            val saveAll = Intent(this, BirdsUi :: class.java)
-            startActivity(saveAll)
-        }
-
-        //when you click on the image
-        binding.ivImage.setOnClickListener{
-            //selectImage.launch("image/*")
-            val pictureDialog = AlertDialog.Builder(this)
-            pictureDialog.setTitle("Select Action")
-            val pictureDialogItem = arrayOf("Select photo from Gallery",
-                "Capture photo from Camera")
-            pictureDialog.setItems(pictureDialogItem){dialog, which ->
-                when(which){
-                    0 -> gallery()
-                    1 -> camera()
-
-
-                }
-
-            }
-            pictureDialog.show()
-        }
 
     }
 
 
-    private fun Validation() {
+    private fun SavingData() {
+
+        val storageReference = FirebaseStorage.getInstance().reference.child("Task Image").child(imageUri!!.lastPathSegment!!)
+
+        val builder = AlertDialog.Builder(this@AddNewBird)
+        builder.setCancelable(false)
+        builder.setView(R.layout.progress_layout)
+        val dialog = builder.create()
+        dialog.show()
+
+        storageReference.putFile(imageUri!!).addOnSuccessListener {
+            taskSnapshot->
+            val uriTask = taskSnapshot.storage.downloadUrl
+            while(!uriTask.isComplete);
+            val urlImage = uriTask.result
+            imageURL = urlImage.toString()
+            UploadingData()
+
+            dialog.dismiss()
+        }.addOnFailureListener{
+            dialog.dismiss()
+        }
+    }
+
+    private fun UploadingData() {
+
+        val name = binding.edBirdName.text.toString()
+        val species = binding.edBirdSpecies.text.toString()
+        val date = binding.tvDate.text.toString()
+
 
         if (binding.edBirdName.text.toString().isEmpty() ||
             binding.edBirdSpecies.text.toString().isEmpty() ||
@@ -143,81 +153,18 @@ class AddNewBird : AppCompatActivity() {
         }
         else {
 
-            val theBirdName = binding.edBirdName.text.toString()
-            val theBirdSpecies = binding.edBirdSpecies.text.toString()
-            val date = binding.tvDate.text.toString()
-
-
-            val imageURL = binding.edBirdName.text.toString()
-
-            val dataClass = Saving(theBirdName, theBirdSpecies, date, imageURL)
-            myReference.setValue(dataClass).addOnSuccessListener {
-                Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
-
-
-            }
-
-        }
-    }
-    private fun UploadData() {
-
-        val theBirdName = binding.edBirdName.text.toString()
-        val theBirdSpecies = binding.edBirdSpecies.text.toString()
-        val date = binding.tvDate.text.toString()
-
-            val personId = myReference.push().key!!
-            imageUri?.let {
-                storageRef.child(personId).putFile(it)
-                    .addOnSuccessListener { task ->
-                        task.metadata!!.reference!!.downloadUrl
-                            .addOnSuccessListener { url ->
-                                Toast.makeText(
-                                    this,
-                                    "Image stored successfully",
-                                    Toast.LENGTH_SHORT
-                                )
-                                    .show()
-
-                                val imageURL = url.toString()
-
-                                val dataClass = Saving(theBirdName, theBirdSpecies, date, imageURL)
-                                myReference.setValue(dataClass).addOnSuccessListener {
-                                    Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
-
-
-                                }
-
-                            }
+            val saveClass = BirdInfo(name, species, date, imageURL)
+            FirebaseDatabase.getInstance().getReference("Business Information").setValue(saveClass).addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Toast.makeText(this@AddNewBird, "Saved", Toast.LENGTH_SHORT).show()
+                        finish()
                     }
-            }
+                }.addOnFailureListener { e ->
+                    Toast.makeText(
+                        this@AddNewBird, e.message.toString(), Toast.LENGTH_SHORT
+                    ).show()
+                }
         }
-
-
-    private fun galleryCheckPermission(){
-
-        Dexter.withContext(this).withPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
-            .withListener (object : PermissionListener {
-                override fun onPermissionGranted(p0: PermissionGrantedResponse?) {
-                    gallery()
-
-
-                }
-
-                override fun onPermissionDenied(p0: PermissionDeniedResponse?) {
-                    Toast.makeText(this@AddNewBird,
-                        "You have denied the storage permission to select image",
-                        Toast.LENGTH_SHORT).show()
-                    showRotationalDialogForPermission()
-                }
-
-                override fun onPermissionRationaleShouldBeShown(
-                    p0: PermissionRequest?,
-                    p1: PermissionToken?
-                ) {
-                    showRotationalDialogForPermission()
-                }
-
-            }).onSameThread().check()
 
     }
 
@@ -227,93 +174,31 @@ class AddNewBird : AppCompatActivity() {
         textDate.setText(sdf.format(calendar.time))
     }
 
-    private fun gallery()
-    {
-        val intent = Intent(Intent.ACTION_PICK)
-        intent.type = "image/*"
-        startActivityForResult(intent, galleryRequestCode)
-    }
-    private fun cameraCheckPermission()
-    {
-        Dexter.withContext(this).withPermissions(
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.CAMERA).withListener(
-            object : MultiplePermissionsListener {
-                override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
-                    report?.let{
-                        if(report.areAllPermissionsGranted())
-                        {
-                            camera()
-                        }
-                    }
-
-                }
-
-                override fun onPermissionRationaleShouldBeShown(
-                    p0: MutableList<PermissionRequest>?,
-                    p1: PermissionToken?) {
-                    showRotationalDialogForPermission()
-                }
-            }
-        ).onSameThread().check()
-    }
 
 
-    private fun camera(){
-        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        startActivityForResult(intent, cameraRequestCode)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if(resultCode == RESULT_OK)
-        {
-            when(requestCode)
-            {
-                cameraRequestCode->{
-                    val bitmap = data?.extras?.get("data") as Bitmap
-                    binding.ivImage.load(bitmap)
-                    {
-                        crossfade(true)
-                        crossfade(1000)
-                        transformations(CircleCropTransformation())
-                    }
-
-                }
-                galleryRequestCode->{
-                    binding.ivImage.load(data?.data)
-                    {
-                        crossfade(true)
-                        crossfade(1000)
-                        transformations(CircleCropTransformation())
-
-                    }
-                }
-            }
-        }
-    }
-
-
-
-    private fun showRotationalDialogForPermission(){
-        AlertDialog.Builder(this).setMessage("It looks like you have turned off permissions" +
-                "required for this feature. It can be enabled under App settings!!!")
-            .setPositiveButton("Go To SETTINGS"){_,_->
-                try{
-                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                    val uri = Uri.fromParts("package", packageName, null)
-                    intent.data = uri
+    fun navigationBar() {
+        //This will account for event clicking of the navigation bar (similar to if statement format)
+        binding.bottomNavigationView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                /*
+                R.id.idBirds -> {
+                    val intent = Intent(this, BirdsUi::class.java)
                     startActivity(intent)
                 }
-                catch(e: ActivityNotFoundException){
-                    e.printStackTrace()
+                 */
+                R.id.idHome -> {
+                    val intent = Intent(this, MapUI::class.java)
+                    startActivity(intent)
                 }
+
+                R.id.idAccount -> {
+                    val intent = Intent(this, AccountSettings::class.java)
+                    startActivity(intent)
+                }
+
+                else -> {}
             }
-            .setNegativeButton("CANCEL"){dialog,_->
-                dialog.dismiss()
-            }.show()
-
-
+            true
+        }
     }
 }
