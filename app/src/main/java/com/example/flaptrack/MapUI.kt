@@ -46,19 +46,11 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
     private lateinit var mMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private val LOCATION_PERMISSION_REQUEST = 1
-    //private var searchQuery: String = ""
-
     var hotspotList = mutableListOf<HotspotData>()
-    private var userLocation: LatLng = LatLng(0.0, 0.0) // Initialize with latitude and longitude values
-    var origin : MarkerOptions? = null
-    var destination : MarkerOptions? = null
-
-
-
-
+    private var userLocation: LatLng = LatLng(0.0, 0.0) // Initialize user location
     private lateinit var binding: ActivityMapUiBinding
-
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?)
+    {
         super.onCreate(savedInstanceState)
         binding = ActivityMapUiBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -83,7 +75,8 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
     }
 
     //----------------------------------------------------------------------------------------------
-    override fun onMapReady(googleMap: GoogleMap) {
+    override fun onMapReady(googleMap: GoogleMap)
+    {
 
         val maxDist = intent.getStringExtra("value_key")
         //textViewReceivedData.text = "Received Data: $receivedValue"
@@ -91,7 +84,8 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
         mMap = googleMap
 
         // Check for location permissions
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+        {
             ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST)
             return
         }
@@ -144,7 +138,8 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
 
     //----------------------------------------------------------------------------------------------
     //Markers listeners when a user clicks on a hotspot
-    override fun onMarkerClick(p0: Marker): Boolean {
+    override fun onMarkerClick(p0: Marker): Boolean
+    {
        // showToast("Hotspot name is: " + p0.title)
 
         // Bottom sheet
@@ -174,7 +169,9 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
 
         return false
     }
+    //----------------------------------------------------------------------------------------------
 
+    //----------------------------------------------------------------------------------------------
     private fun getDirectionsUrl(startLocat: LatLng, endLocat: LatLng): String?
     {
         // Origin of route
@@ -196,9 +193,12 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
         //. Building the url to the web service
         return s
     }
+    //----------------------------------------------------------------------------------------------
 
+    //----------------------------------------------------------------------------------------------
     inner class DownloadTask:
-    AsyncTask<String?, Void?, String>() {
+    AsyncTask<String?, Void?, String>()
+    {
         override fun onPostExecute(result: String)
         {
             super.onPostExecute(result)
@@ -217,7 +217,9 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
             return data
         }
     }
+    //----------------------------------------------------------------------------------------------
 
+    //----------------------------------------------------------------------------------------------
     //Method to download json data from url
     @Throws(IOException::class)
     private fun downloadUrl(strUrl: String): String?
@@ -239,18 +241,22 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
             }
             data = sb.toString()
             br.close()
-        } catch(e:java.lang.Exception)
+        }
+        catch(e:java.lang.Exception)
         {
             Log.d("Exception", e.toString())
-        }finally{
+        }
+        finally
+        {
             iStream!!.close()
             urlConnection!!.disconnect()
         }
         return data
     }
+    //----------------------------------------------------------------------------------------------
 
+    //----------------------------------------------------------------------------------------------
     //Class to pass JSON format
-
     inner class ParserTask:
     AsyncTask<String?, Int?, List<List<HashMap<String, String>>>?>()
     {
@@ -267,7 +273,9 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
             }
             return routes
         }
+        //----------------------------------------------------------------------------------------------
 
+        //----------------------------------------------------------------------------------------------
         override fun onPostExecute(result: List<List<HashMap<String, String>>>?)
         {
             val points = ArrayList<LatLng?>()
@@ -284,7 +292,7 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
                     points.add(position)
                 }
                 lineOptions.addAll(points)
-                lineOptions.width(8f)
+                lineOptions.width(10f)
                 lineOptions.color(Color.RED)
                 lineOptions.geodesic(true)
             }
@@ -296,7 +304,8 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
 
 
     //----------------------------------------------------------------------------------------------
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray)
+    {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == LOCATION_PERMISSION_REQUEST && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             // Permission granted, show the device's current location on the map
@@ -417,7 +426,9 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
     //----------------------------------------------------------------------------------------------
 
     //----------------------------------------------------------------------------------------------
-    // Function to calculate the distance between two LatLng points using the Haversine formula
+    /* Function to calculate the distance between two LatLng from the earth's
+     points using the Haversine formula. This is to use for filtering of hotspots not directions
+     */
     private fun calculateDistance(point1: LatLng, point2: LatLng): Double
     {
         val radius = 6371.0 // Earth's radius in kilometers
@@ -483,11 +494,11 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
 
                         if(matchingLat != null && matchingLng != null)
                         {
-                            showToast("Matching hotspot found: lat=$matchingLat, lng=$matchingLng of $searchQuery")
+                            showToast("$searchQuery - lat=$matchingLat, lng=$matchingLng of $searchQuery")
 
                             // You can perform further actions here, such as moving the camera
                             val hotspotLatLng = LatLng(matchingLat, matchingLng)
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(hotspotLatLng, 15f))
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(hotspotLatLng, 18f))
                         }
                         else
                         {
@@ -508,7 +519,9 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
                 return true
             }
 
-            override fun onQueryTextChange(newText: String?): Boolean {
+            //if text message changes
+            override fun onQueryTextChange(newText: String?): Boolean
+            {
                 // Handle text changes here if needed
                 return true
             }
