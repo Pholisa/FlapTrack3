@@ -17,7 +17,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import coil.load
 import coil.transform.CircleCropTransformation
-import com.example.flaptrack.databinding.ActivityAddBirdBinding
+import com.example.flaptrack.databinding.ActivityAddNewBirdBinding
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
@@ -35,12 +35,14 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-private lateinit var textDate: TextView
-private lateinit var buttonDate: Button
 
-class AddBird : AppCompatActivity() {
 
-    private lateinit var binding :ActivityAddBirdBinding
+class AddNewBird : AppCompatActivity() {
+
+    private lateinit var textDate: TextView
+    private lateinit var buttonDate: Button
+
+    private lateinit var binding :ActivityAddNewBirdBinding
 
     private val database = Firebase.database
     private val userID = FirebaseAuth.getInstance().currentUser?.uid
@@ -56,11 +58,9 @@ class AddBird : AppCompatActivity() {
 
     private var count = 0
 
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityAddBirdBinding.inflate(layoutInflater)
+        binding = ActivityAddNewBirdBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         storageRef = FirebaseStorage.getInstance().getReference("Images")
@@ -101,7 +101,7 @@ class AddBird : AppCompatActivity() {
         }
         binding.btnSave.setOnClickListener {
             count++
-            val intent = Intent(this@AddBird, ViewBadge :: class.java)
+            val intent = Intent(this@AddNewBird, ViewBadge :: class.java)
             intent.putExtra("COUNT", count)
             UploadData()
         }
@@ -182,7 +182,7 @@ class AddBird : AppCompatActivity() {
                 }
 
                 override fun onPermissionDenied(p0: PermissionDeniedResponse?) {
-                    Toast.makeText(this@AddBird,
+                    Toast.makeText(this@AddNewBird,
                         "You have denied the storage permission to select image",
                         Toast.LENGTH_SHORT).show()
                     showRorationalDialogForPermission()

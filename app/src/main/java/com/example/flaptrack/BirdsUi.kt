@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import com.example.flaptrack.databinding.ActivityBirdsUiBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import java.util.Calendar
 
 class BirdsUi : AppCompatActivity() {
 
@@ -14,6 +15,12 @@ class BirdsUi : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityBirdsUiBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+
+        binding.floatButton.setOnClickListener{
+            val addBirdIntent = Intent(this, AddNewBird::class.java)
+            startActivity(addBirdIntent)
+        }
 
         MaterialAlertDialogBuilder(this)
             .setTitle("Welcome")
