@@ -53,6 +53,8 @@ class Register : AppCompatActivity() {
                     firebaseAuthentication.createUserWithEmailAndPassword(username, password).addOnCompleteListener {
                         if (it.isSuccessful)
                         {
+
+
                             val user = StoringPersonalInfo(name, surname, age)
                             myReference?.setValue(user)?.addOnSuccessListener {
                                 Toast.makeText(this, "Information Saved", Toast.LENGTH_SHORT).show()

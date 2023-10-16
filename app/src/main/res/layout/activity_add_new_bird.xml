@@ -8,13 +8,14 @@
     tools:context=".AddNewBird">
 
 
-
     <TextView
         android:id="@+id/textViewAddBird"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="302dp"
         android:text="Add New Bird"
         android:textSize="24sp"
+        app:layout_constraintBottom_toTopOf="@+id/btnDate"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.432"
         app:layout_constraintStart_toStartOf="parent"
@@ -55,41 +56,18 @@
 
 
     <Button
-        android:id="@+id/btnCamera"
-        android:layout_width="34dp"
-        android:layout_height="34dp"
-        android:backgroundTint="@color/grey"
-        android:layout_marginTop="100dp"
-        android:background="@drawable/baseline_photo_camera_24"
-        android:color="@color/grey"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.421"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/edBirdSpecies" />
-
-    <Button
-        android:id="@+id/btnGallery"
-        android:layout_width="34dp"
-        android:layout_height="34dp"
-        android:background="@drawable/baseline_image_24"
-        tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="207dp"
-        tools:layout_editor_absoluteY="430dp" />
-
-    <Button
         android:id="@+id/btnSave"
         style="?attr/materialButtonOutlinedStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="116dp"
         android:text="Save"
         android:textColor="@color/grey"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.049"
         app:layout_constraintStart_toStartOf="parent"
-        tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteY="453dp" />
-
-
+        app:layout_constraintTop_toTopOf="@+id/tvDate"
+        tools:ignore="MissingConstraints" />
 
     <TextView
         android:id="@+id/tvDate"
@@ -106,12 +84,15 @@
     <Button
         android:id="@+id/btnDate"
         android:layout_width="34dp"
-        android:layout_height="34dp"
-        android:backgroundTint="@color/grey"
+        android:layout_height="0dp"
+        android:layout_marginTop="296dp"
         android:background="@drawable/baseline_calendar_month_24"
-        tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="233dp"
-        tools:layout_editor_absoluteY="336dp" />
+        android:backgroundTint="@color/grey"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.554"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textViewAddBird"
+        tools:ignore="MissingConstraints" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"

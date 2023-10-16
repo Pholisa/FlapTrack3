@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.provider.Settings
 import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -63,6 +64,7 @@ class AddNewBird : AppCompatActivity() {
         binding = ActivityAddNewBirdBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+
         storageRef = FirebaseStorage.getInstance().getReference("Images")
 
         textDate = findViewById(R.id.tvDate)
@@ -89,21 +91,24 @@ class AddNewBird : AppCompatActivity() {
             }
         }
 
-
-        binding.btnCamera.setOnClickListener {
-            cameraCheckPermission()
-        }
-
-        binding.btnGallery.setOnClickListener {
-            pickImage.launch("image/*")
-
-            //galleryCheckPermission()
-        }
+//        binding.btnCamera.setOnClickListener {
+//            cameraCheckPermission()
+//        }
+//
+//        binding.btnGallery.setOnClickListener {
+//            pickImage.launch("image/*")
+//
+//            //galleryCheckPermission()
+//        }
         binding.btnSave.setOnClickListener {
+
+            Validation()
+
             count++
-            val intent = Intent(this@AddNewBird, ViewBadge :: class.java)
+            val intent = Intent(this, ViewBadge :: class.java)
             intent.putExtra("COUNT", count)
-            UploadData()
+            val saveAll = Intent(this, BirdsUi :: class.java)
+            startActivity(saveAll)
         }
 
         //when you click on the image
@@ -128,21 +133,37 @@ class AddNewBird : AppCompatActivity() {
     }
 
 
+    private fun Validation() {
+
+        if (binding.edBirdName.text.toString().isEmpty() ||
+            binding.edBirdSpecies.text.toString().isEmpty() ||
+            binding.tvDate.text.toString().isEmpty()
+        ) {
+            Toast.makeText(this, "Please enter all fields", Toast.LENGTH_SHORT).show()
+        }
+        else {
+
+            val theBirdName = binding.edBirdName.text.toString()
+            val theBirdSpecies = binding.edBirdSpecies.text.toString()
+            val date = binding.tvDate.text.toString()
+
+
+            val imageURL = binding.edBirdName.text.toString()
+
+            val dataClass = Saving(theBirdName, theBirdSpecies, date, imageURL)
+            myReference.setValue(dataClass).addOnSuccessListener {
+                Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
+
+
+            }
+
+        }
+    }
     private fun UploadData() {
 
         val theBirdName = binding.edBirdName.text.toString()
         val theBirdSpecies = binding.edBirdSpecies.text.toString()
         val date = binding.tvDate.text.toString()
-
-
-        if (binding.edBirdName.text.toString().isEmpty() ||
-            binding.edBirdSpecies.text.toString().isEmpty()
-        )
-        {
-            Toast.makeText(this, "Please enter all fields", Toast.LENGTH_SHORT).show()
-        }
-        else
-        {
 
             val personId = myReference.push().key!!
             imageUri?.let {
@@ -159,9 +180,8 @@ class AddNewBird : AppCompatActivity() {
 
                                 val imageURL = url.toString()
 
-
                                 val dataClass = Saving(theBirdName, theBirdSpecies, date, imageURL)
-                                myReference.push().setValue(dataClass).addOnSuccessListener {
+                                myReference.setValue(dataClass).addOnSuccessListener {
                                     Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
 
 
@@ -171,7 +191,7 @@ class AddNewBird : AppCompatActivity() {
                     }
             }
         }
-    }
+
 
     private fun galleryCheckPermission(){
 
@@ -179,20 +199,22 @@ class AddNewBird : AppCompatActivity() {
             .withListener (object : PermissionListener {
                 override fun onPermissionGranted(p0: PermissionGrantedResponse?) {
                     gallery()
+
+
                 }
 
                 override fun onPermissionDenied(p0: PermissionDeniedResponse?) {
                     Toast.makeText(this@AddNewBird,
                         "You have denied the storage permission to select image",
                         Toast.LENGTH_SHORT).show()
-                    showRorationalDialogForPermission()
+                    showRotationalDialogForPermission()
                 }
 
                 override fun onPermissionRationaleShouldBeShown(
                     p0: PermissionRequest?,
                     p1: PermissionToken?
                 ) {
-                    showRorationalDialogForPermission()
+                    showRotationalDialogForPermission()
                 }
 
             }).onSameThread().check()
@@ -230,7 +252,7 @@ class AddNewBird : AppCompatActivity() {
                 override fun onPermissionRationaleShouldBeShown(
                     p0: MutableList<PermissionRequest>?,
                     p1: PermissionToken?) {
-                    showRorationalDialogForPermission()
+                    showRotationalDialogForPermission()
                 }
             }
         ).onSameThread().check()
@@ -274,7 +296,7 @@ class AddNewBird : AppCompatActivity() {
 
 
 
-    private fun showRorationalDialogForPermission(){
+    private fun showRotationalDialogForPermission(){
         AlertDialog.Builder(this).setMessage("It looks like you have turned off permissions" +
                 "required for this feature. It can be enabled under App settings!!!")
             .setPositiveButton("Go To SETTINGS"){_,_->
