@@ -68,7 +68,7 @@
                 android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/tvLocatName"
+                    android:id="@+id/tvLocatNme"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="location name"
@@ -78,7 +78,7 @@
                 </TextView>
 
                 <TextView
-                    android:id="@+id/tvLocatDistance"
+                    android:id="@+id/tvLocatDist"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text=""
@@ -92,9 +92,9 @@
                     android:paddingLeft="35dp">
 
                     <Button
+                        android:id="@+id/btnDirec"
                         android:layout_width="345dp"
                         android:layout_height="wrap_content"
-                        android:backgroundTint="@color/places_autocomplete_error_button"
                         android:text="Directions"
                         android:textSize="24dp"
                         android:background="@drawable/buttonshape">

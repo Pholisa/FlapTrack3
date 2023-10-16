@@ -2,8 +2,12 @@ package com.example.flaptrack
 
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.location.Location
+import android.os.AsyncTask
 import android.os.Bundle
+import android.util.Log
+import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.SearchView
@@ -24,10 +28,17 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.PolylineOptions
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.InputStream
+import java.io.InputStreamReader
+import java.net.HttpURLConnection
+import java.net.URL
 import kotlin.concurrent.thread
 
 class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener {
@@ -39,6 +50,9 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
 
     var hotspotList = mutableListOf<HotspotData>()
     private var userLocation: LatLng = LatLng(0.0, 0.0) // Initialize with latitude and longitude values
+    var origin : MarkerOptions? = null
+    var destination : MarkerOptions? = null
+
 
 
 
@@ -135,10 +149,11 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
 
         // Bottom sheet
         val sheet1 = findViewById<FrameLayout>(R.id.sheet)
-        val locatName = findViewById<TextView>(R.id.tvLocatName)
-        val locatDistance= findViewById<TextView>(R.id.tvLocatDistance)
+        val locatName = findViewById<TextView>(R.id.tvLocatNme)
+        val locatDistance= findViewById<TextView>(R.id.tvLocatDist)
+        val direction = findViewById<Button>(R.id.btnDirec)
 
-        var location = searchArea(userLocation,p0.position)
+        val location = searchArea(userLocation,p0.position)
 
         BottomSheetBehavior.from(sheet1).apply {
             peekHeight = 100
@@ -147,9 +162,135 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
             locatName.text = p0.title
             locatDistance.text = "${location} km"
 
+            direction.setOnClickListener {
+                val url: String? = getDirectionsUrl(userLocation!!,p0.position!!)
+                val downloadTask: DownloadTask = DownloadTask()
+
+                //downloading json data from google directions
+                downloadTask.execute(url)
+            }
+
         }
 
         return false
+    }
+
+    private fun getDirectionsUrl(startLocat: LatLng, endLocat: LatLng): String?
+    {
+        // Origin of route
+        val str_origin = "origin=" + startLocat.latitude + "," + startLocat.longitude
+
+        // Destination of route
+        val str_dest = "destination="+ endLocat.latitude + "," + endLocat.longitude
+
+        //setting transportation mode
+        val mode = "mode=driving"
+
+        // Building the parameters to the web service
+         val parameters = "$str_origin&$str_dest&$mode"
+
+        // Output format
+        val output = "json"
+
+        var s = "https://maps.googleapis.com/maps/api/directions/$output?$parameters&key=AIzaSyB3EPkYb9njIsQ1oX9w511QuDb3gC6xDKY"
+        //. Building the url to the web service
+        return s
+    }
+
+    inner class DownloadTask:
+    AsyncTask<String?, Void?, String>() {
+        override fun onPostExecute(result: String)
+        {
+            super.onPostExecute(result)
+            val parserTask = ParserTask()
+            parserTask.execute(result)
+        }
+        override fun doInBackground(vararg url: String?): String {
+            var data = ""
+
+            try
+            {
+                data = downloadUrl(url[0].toString()).toString()
+            } catch(e: java.lang.Exception){
+                Log.d("Background Task", e.toString())
+            }
+            return data
+        }
+    }
+
+    //Method to download json data from url
+    @Throws(IOException::class)
+    private fun downloadUrl(strUrl: String): String?
+    {
+        var data = ""
+        var iStream: InputStream? = null
+        var urlConnection: HttpURLConnection? = null
+        try{
+            val url = URL(strUrl)
+            urlConnection = url.openConnection() as HttpURLConnection
+            urlConnection.connect()
+            iStream = urlConnection!!.inputStream
+            val br = BufferedReader(InputStreamReader(iStream))
+            val sb = StringBuffer()
+            var line: String? = ""
+            while(br.readLine().also {line = it} != null)
+            {
+                sb.append(line)
+            }
+            data = sb.toString()
+            br.close()
+        } catch(e:java.lang.Exception)
+        {
+            Log.d("Exception", e.toString())
+        }finally{
+            iStream!!.close()
+            urlConnection!!.disconnect()
+        }
+        return data
+    }
+
+    //Class to pass JSON format
+
+    inner class ParserTask:
+    AsyncTask<String?, Int?, List<List<HashMap<String, String>>>?>()
+    {
+        //passing data in a no ui thread
+        override fun doInBackground(vararg jsonData: String?): List<List<HashMap<String, String>>>? {
+            val jObject : JSONObject
+            var routes: List<List<HashMap<String, String>>>? = null
+            try{
+                jObject = JSONObject(jsonData[0])
+                val parser = DataParser()
+                routes = parser.parse(jObject)
+            }catch(e: java.lang.Exception){
+                e.printStackTrace()
+            }
+            return routes
+        }
+
+        override fun onPostExecute(result: List<List<HashMap<String, String>>>?)
+        {
+            val points = ArrayList<LatLng?>()
+            val lineOptions = PolylineOptions()
+            for(i in result!!.indices)
+            {
+                val path = result[i]
+                for(j in path.indices)
+                {
+                    val point = path[j]
+                    val lat = point["lat"]!!.toDouble()
+                    val lng = point["lng"]!!.toDouble()
+                    val position = LatLng(lat,lng)
+                    points.add(position)
+                }
+                lineOptions.addAll(points)
+                lineOptions.width(8f)
+                lineOptions.color(Color.RED)
+                lineOptions.geodesic(true)
+            }
+            //Draw lines for the i-th route
+            if(points.size != 0) mMap!!.addPolyline(lineOptions)
+        }
     }
     //----------------------------------------------------------------------------------------------
 
