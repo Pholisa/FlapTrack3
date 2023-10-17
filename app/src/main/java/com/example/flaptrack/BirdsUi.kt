@@ -8,6 +8,7 @@ import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.flaptrack.databinding.ActivityBirdsUiBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -23,6 +24,9 @@ class BirdsUi : AppCompatActivity() {
     private lateinit var adapter: MyAdapter
     var databaseReference: DatabaseReference? = null
     var eventListener: ValueEventListener? = null
+
+    private val userID = FirebaseAuth.getInstance().currentUser?.uid
+
 
 
 
@@ -40,51 +44,24 @@ class BirdsUi : AppCompatActivity() {
         val dialog = builder.create()
         dialog.show()
 
-        theArrayList = ArrayList()
-        adapter = MyAdapter(this@BirdsUi, theArrayList)
-        binding.rvBirdListView.adapter = adapter
-        databaseReference = FirebaseDatabase.getInstance().getReference("Bird Preview")
-        dialog.show()
 
 
-
-        eventListener = databaseReference!!.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-
-                theArrayList.clear()
-                for (itemSnapshot in snapshot.children) {
-                    val birdInfo = itemSnapshot.getValue(BirdInfo::class.java)
-                    if (birdInfo != null) {
-                        theArrayList.add(birdInfo)
-                    }
-                }
-                adapter.notifyDataSetChanged()
-                dialog.dismiss()
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                dialog.dismiss()
-            }
-
-        })
-
-
-        binding.floatButton.setOnClickListener {
-            val addBirdIntent = Intent(this, AddNewBird::class.java)
-            startActivity(addBirdIntent)
-        }
-
-//        binding.svSearchBirds.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-//            override fun onQueryTextSubmit(query: String?): Boolean {
-//                return false
-//            }
+//        binding.floatButton.setOnClickListener {
+//            val addBirdIntent = Intent(this, AddNewBird::class.java)
+//            startActivity(addBirdIntent)
+//        }
+//
+//       binding.svSearchBirds.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+//          override fun onQueryTextSubmit(query: String?): Boolean {
+//             return false
+//           }
 //
 //            override fun onQueryTextChange(newText: String): Boolean {
 //                searchList(newText)
-//                return true
-//            }
+//               return true
+//           }
 //        })
-//
+
 
 
         MaterialAlertDialogBuilder(this)
@@ -105,16 +82,6 @@ class BirdsUi : AppCompatActivity() {
         navigationBar()
     }
 
-    private fun searchList(text : String) {
-        val searchList = ArrayList<BirdInfo>()
-        for(birdInfo in theArrayList)
-        {
-            if(birdInfo.birdName?.lowercase()?.contains(text.lowercase()) == true){
-                searchList.add(birdInfo)
-            }
-        }
-        adapter.searchDataList(searchList)
-    }
 
     private fun displayMetricSelection() {
         val singleItems = arrayOf("Kilometres", "Miles")
@@ -172,4 +139,5 @@ class BirdsUi : AppCompatActivity() {
         }
     }
 }
+
 

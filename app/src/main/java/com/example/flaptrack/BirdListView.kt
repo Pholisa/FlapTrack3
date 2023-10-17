@@ -3,6 +3,7 @@ package com.example.flaptrack
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.recyclerview.widget.GridLayoutManager
@@ -23,61 +24,117 @@ class BirdListView : AppCompatActivity() {
     private lateinit var binding : ActivityBirdListViewBinding
 
 
-    private lateinit var theArrayList: ArrayList<BirdInfo>
+    //private lateinit var theArrayList: ArrayList<BirdInfo>
     private lateinit var adapter: MyAdapter
+    var firebaseDatabase : FirebaseDatabase ?=null
     var databaseReference : DatabaseReference?=null
     var eventListener : ValueEventListener?=null
 
-  /*  private val theDatabase = Firebase.database
+    private var theArrayList = mutableListOf<BirdInfo>()
+
+
+    private val theDatabase = Firebase.database
     private val userID = FirebaseAuth.getInstance().currentUser?.uid
-    private val myReference = theDatabase.getReference("users").child(userID!!).child("Bird Preview")
 
     private lateinit var database: DatabaseReference
-*/
+
 
    override fun onCreate(savedInstanceState: Bundle?) {
        super.onCreate(savedInstanceState)
        binding = ActivityBirdListViewBinding.inflate(layoutInflater)
        setContentView(binding.root)
 
-       val gridLayoutManager = GridLayoutManager(this@BirdListView, 1)
-       binding.rvBirdListView.layoutManager = gridLayoutManager
 
-       val builder = AlertDialog.Builder(this@BirdListView)
-       builder.setCancelable(false)
-       builder.setView(R.layout.progress_layout)
-       val dialog = builder.create()
-       dialog.show()
 
-       theArrayList = ArrayList()
-       adapter = MyAdapter(this@BirdListView, theArrayList)
-       binding.rvBirdListView.adapter = adapter
-       databaseReference = FirebaseDatabase.getInstance().getReference("Bird Preview")
-       dialog.show()
+       firebaseDatabase = FirebaseDatabase.getInstance()
+       databaseReference = firebaseDatabase?.getReference("Bird Information")
 
-       eventListener = databaseReference!!.addValueEventListener(object: ValueEventListener{
-           override fun onDataChange(snapshot: DataSnapshot) {
+       initialiseRecycleView()
+       getData()
 
-               theArrayList.clear()
-               for (itemSnapshot in snapshot.children){
-                   val birdInfo = itemSnapshot.getValue(BirdInfo::class.java)
-                   if(birdInfo != null){
-                       theArrayList.add(birdInfo)
-                   }
-               }
-               adapter.notifyDataSetChanged()
-               dialog.dismiss()
-           }
-
-           override fun onCancelled(error: DatabaseError) {
-               dialog.dismiss()
-           }
-
-       })
+       //val userId = intent.getStringExtra("useremail") //You need this in order to access data for a specif userID
 
 
 
    }
+
+    private fun initialiseRecycleView(){
+        adapter = MyAdapter()
+        binding.apply {
+            rvBirdListView.layoutManager = LinearLayoutManager(this@BirdListView)
+            rvBirdListView.adapter = adapter
+        }
+    }
+    //******************************************************************************************
+    //Get Values in Database
+    private fun getData(){
+        databaseReference?.addValueEventListener(object : ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+                // Log.e("00000", "onDataChange: $snapshot")
+                theArrayList.clear()
+                for (it in snapshot.children){
+
+                    val theBirdName =
+                        it.child("Bird Information").child("birdName").child("").value.toString()
+                    val theBirdSpecies =
+                        it.child("Bird Information").child("birdSpecies").child("").value.toString()
+                    val theDate =
+                        it.child("Bird Information").child("date").child("").value.toString()
+                    val theImage =
+                        it.child("Bird Information").child("image").child("").value.toString()
+
+
+                    val bird = BirdInfo(birdName = theBirdName, birdSpecies =theBirdSpecies, date = theDate, image = theImage)
+                    theArrayList.add(bird)
+                }
+                Log.e("0000", "size: ${theArrayList.size}")
+                adapter?.setItem(theArrayList)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("0000", "onCancelled: ${error.toException()}")
+            }
+        })
+    }
+
+//       val gridLayoutManager = GridLayoutManager(this@BirdListView, 1)
+//       binding.rvBirdListView.layoutManager = gridLayoutManager
+//
+//       val builder = AlertDialog.Builder(this@BirdListView)
+//       builder.setCancelable(false)
+//       builder.setView(R.layout.progress_layout)
+//       val dialog = builder.create()
+//       dialog.show()
+//
+//       theArrayList = ArrayList()
+//       adapter = MyAdapter(this@BirdListView, theArrayList)
+//       binding.rvBirdListView.adapter = adapter
+//       databaseReference = FirebaseDatabase.getInstance().getReference("users").child(userID!!).child("Business Information")
+//       dialog.show()
+//
+//       eventListener = databaseReference!!.addValueEventListener(object: ValueEventListener{
+//           override fun onDataChange(snapshot: DataSnapshot) {
+//
+//               theArrayList.clear()
+//               for (itemSnapshot in snapshot.children){
+//                   val birdInfo = itemSnapshot.getValue(BirdInfo::class.java)
+//                   if(birdInfo != null){
+//                       theArrayList.add(birdInfo)
+//                   }
+//               }
+//               adapter.notifyDataSetChanged()
+//               dialog.dismiss()
+//           }
+//
+//           override fun onCancelled(error: DatabaseError) {
+//               dialog.dismiss()
+//           }
+//
+//       })
+
+
+
+  // }
 
 //    private fun getBirdData() {
 //
@@ -98,7 +155,7 @@ class BirdListView : AppCompatActivity() {
 //            }
 //
 //            override fun onCancelled(error: DatabaseError) {
-//                TODO("Not yet implemented")
+//
 //            }
 //
 //        })

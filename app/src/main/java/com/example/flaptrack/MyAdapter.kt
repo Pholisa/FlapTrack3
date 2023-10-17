@@ -1,4 +1,7 @@
 package com.example.flaptrack
+
+import android.graphics.BitmapFactory
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -8,44 +11,92 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 
 
-class MyAdapter(private val context: android.content.Context, private var arrayList: List<BirdInfo>) : RecyclerView.Adapter<MyViewHolder>() {
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
-        val view: View = LayoutInflater.from(parent.context).inflate(R.layout.activity_bird_list_item, parent, false)
-        return MyViewHolder(view)
-    }
-    override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        Glide.with(context).load(arrayList[position].image)
-            .into(holder.recImage)
-        holder.recName.text = arrayList[position].birdName
-        holder.recSpecies.text = arrayList[position].birdSpecies
-        holder.recDate.text = arrayList[position].date
+
+class MyAdapter: RecyclerView.Adapter<MyAdapter.EntryViewHolder>() {
+
+    private var arrayList = mutableListOf<BirdInfo>()
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EntryViewHolder {
+        val context = parent.context
+        val inflater = LayoutInflater.from(context)
+        val itemView = inflater.inflate(R.layout.activity_bird_list_item, parent, false)
+        return EntryViewHolder(itemView)
     }
 
     override fun getItemCount(): Int {
         return arrayList.size
     }
 
-    fun searchDataList(searchList: List<BirdInfo>){
-        arrayList = searchList
+    override fun onBindViewHolder(holder: EntryViewHolder, position: Int) {
+        val bird = arrayList[position]
+        holder.setItem(bird)
+        val bytes = Base64.decode(bird.image, Base64.DEFAULT)
+        val bitmap = BitmapFactory.decodeByteArray(bytes,0,bytes.size)
+        holder.recImage.setImageBitmap(bitmap)
+    }
+
+    fun setItem(list: MutableList<BirdInfo>){
+        this.arrayList = list
         notifyDataSetChanged()
     }
-}
-class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-    var recImage: ImageView
-    var recName: TextView
-    var recSpecies: TextView
-    var recDate: TextView
 
-    init {
-        recImage = itemView.findViewById(R.id.ivBirdPicture)
-        recName = itemView.findViewById(R.id.tvBirdName)
-        recSpecies = itemView.findViewById(R.id.tvBirdSpecies)
-        recDate = itemView.findViewById(R.id.tvDate)
+    class EntryViewHolder (itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private var recName: TextView? = null
+        private var recSpecies: TextView? = null
+        private var recDate: TextView? = null
+        val recImage: ImageView = itemView.findViewById(R.id.ivBirdPicture)
+
+        fun setItem(bird: BirdInfo) {
+            recName = itemView.findViewById(R.id.tvBirdName)
+            recSpecies = itemView.findViewById(R.id.tvBirdSpecies)
+            recDate = itemView.findViewById(R.id.tvDate)
+
+
+            recName?.text = bird.birdName
+            recSpecies?.text = bird.birdSpecies
+            recDate?.text = bird.date
+
+        }
     }
-}
-
-
-
+    }
+//class MyAdapter(private val context: android.content.Context, private var arrayList: List<BirdInfo>) : RecyclerView.Adapter<MyViewHolder>() {
+//    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
+//        val view: View = LayoutInflater.from(parent.context).inflate(R.layout.activity_bird_list_item, parent, false)
+//        return MyViewHolder(view)
+//    }
+//    override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
+//        Glide.with(context).load(arrayList[position].image)
+//            .into(holder.recImage)
+//        holder.recName.text = arrayList[position].birdName
+//        holder.recSpecies.text = arrayList[position].birdSpecies
+//        holder.recDate.text = arrayList[position].date
+//    }
+//
+//    override fun getItemCount(): Int {
+//        return arrayList.size
+//    }
+//
+//    fun searchDataList(searchList: List<BirdInfo>){
+//        arrayList = searchList
+//        notifyDataSetChanged()
+//    }
+//}
+//class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+//    var recImage: ImageView
+//    var recName: TextView
+//    var recSpecies: TextView
+//    var recDate: TextView
+//
+//    init {
+//        recImage = itemView.findViewById(R.id.ivBirdPicture)
+//        recName = itemView.findViewById(R.id.tvBirdName)
+//        recSpecies = itemView.findViewById(R.id.tvBirdSpecies)
+//        recDate = itemView.findViewById(R.id.tvDate)
+//    }
+//}
+//
+//
+//
 
 
 

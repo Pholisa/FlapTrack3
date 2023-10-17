@@ -149,7 +149,7 @@ class AddNewBird : AppCompatActivity() {
        } else {
 
            val saveClass = BirdInfo(name, species, date, imageURL)
-           FirebaseDatabase.getInstance().getReference("Bird Information").setValue(saveClass)
+           FirebaseDatabase.getInstance().getReference("users").child(userID!!).child("Bird Information").setValue(saveClass)
                .addOnCompleteListener { task ->
                    if (task.isSuccessful) {
                        Toast.makeText(this@AddNewBird, "Saved", Toast.LENGTH_SHORT).show()

@@ -72,6 +72,7 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
         //Drawing the direction
 
 
+
     }
 
     //----------------------------------------------------------------------------------------------
@@ -82,6 +83,16 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
         //textViewReceivedData.text = "Received Data: $receivedValue"
 
         mMap = googleMap
+
+        //Zoom in Controls
+        mMap?.uiSettings?.apply {
+            isZoomControlsEnabled = true
+            isCompassEnabled = true
+            isRotateGesturesEnabled = true
+            isScrollGesturesEnabled = true
+            isTiltGesturesEnabled = true
+            isZoomGesturesEnabled = true
+        }
 
         // Check for location permissions
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
