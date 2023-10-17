@@ -17,6 +17,7 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
+import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
 
 class BirdListView : AppCompatActivity() {
@@ -25,7 +26,7 @@ class BirdListView : AppCompatActivity() {
 
 
     //private lateinit var theArrayList: ArrayList<BirdInfo>
-    private lateinit var adapter: MyAdapter
+    private  var theAdapter: MyAdapter?=null
     var firebaseDatabase : FirebaseDatabase ?=null
     var databaseReference : DatabaseReference?=null
     var eventListener : ValueEventListener?=null
@@ -50,7 +51,7 @@ class BirdListView : AppCompatActivity() {
        databaseReference = theDatabase.getReference("users").child(userID!!).child("Bird Information")
 
        initialiseRecycleView()
-       //getData()
+       getData()
 
        //val userId = intent.getStringExtra("useremail") //You need this in order to access data for a specif userID
 
@@ -59,10 +60,10 @@ class BirdListView : AppCompatActivity() {
    }
 
     private fun initialiseRecycleView(){
-        adapter = MyAdapter()
+        theAdapter = MyAdapter()
         binding.apply {
             rvBirdListView.layoutManager = LinearLayoutManager(this@BirdListView)
-            rvBirdListView.adapter = adapter
+            rvBirdListView.adapter = theAdapter
         }
     }
     //******************************************************************************************
@@ -74,17 +75,18 @@ class BirdListView : AppCompatActivity() {
                 theArrayList.clear()
                 for (it in snapshot.children){
 
-                    val theBirdName =
-                        it.child("Bird Information").child("birdName").child("").value.toString()
+             //       val theBirdName = it.child("birdName").toString()
+                    val theBirdName = it.key
                     val theBirdSpecies =
-                        it.child("Bird Information").child("birdSpecies").child("").value.toString()
+                        it.child("birdSpecies").value.toString()
                     val theDate =
-                        it.child("Bird Information").child("date").child("").value.toString()
+                        it.child("date").getValue().toString()
+
                     val theImage =
-                        it.child("Bird Information").child("image").child("").value.toString()
+                        it.child("image").value.toString()
 
                     val theLoc =
-                        it.child("Bird Information").child("image").child("").value.toString()
+                        it.child("location").getValue().toString()
 
 
 
@@ -92,7 +94,7 @@ class BirdListView : AppCompatActivity() {
                     theArrayList.add(bird)
                 }
                 Log.e("0000", "size: ${theArrayList.size}")
-                adapter?.setItem(theArrayList)
+                theAdapter?.setItem(theArrayList)
             }
 
             override fun onCancelled(error: DatabaseError) {

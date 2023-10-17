@@ -97,6 +97,7 @@ class AddNewBird : AppCompatActivity() {
 
             savingData()
 
+
         }
 
 
@@ -179,8 +180,9 @@ class AddNewBird : AppCompatActivity() {
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         Toast.makeText(this@AddNewBird, "Saved", Toast.LENGTH_SHORT).show()
-                        finish()
                     }
+                    val intent = Intent(this, BirdsUi::class.java)
+                    startActivity(intent)
                 }.addOnFailureListener { e ->
                     Toast.makeText(
                         this@AddNewBird, e.message.toString(), Toast.LENGTH_SHORT
