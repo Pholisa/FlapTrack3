@@ -38,18 +38,18 @@ class BirdsUi : AppCompatActivity() {
         val gridLayoutManager = GridLayoutManager(this@BirdsUi, 1)
         binding.rvBirdListView.layoutManager = gridLayoutManager
 
-        val builder = AlertDialog.Builder(this@BirdsUi)
-        builder.setCancelable(false)
-        builder.setView(R.layout.progress_layout)
-        val dialog = builder.create()
-        dialog.show()
+//        val builder = AlertDialog.Builder(this@BirdsUi)
+//        builder.setCancelable(false)
+//        builder.setView(R.layout.progress_layout)
+//        val dialog = builder.create()
+//        dialog.show()
 
 
 
-//        binding.floatButton.setOnClickListener {
-//            val addBirdIntent = Intent(this, AddNewBird::class.java)
-//            startActivity(addBirdIntent)
-//        }
+        binding.floatButton.setOnClickListener {
+            val addBirdIntent = Intent(this, AddNewBird::class.java)
+            startActivity(addBirdIntent)
+        }
 //
 //       binding.svSearchBirds.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
 //          override fun onQueryTextSubmit(query: String?): Boolean {

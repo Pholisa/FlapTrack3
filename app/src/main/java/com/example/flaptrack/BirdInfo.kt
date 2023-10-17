@@ -5,13 +5,16 @@ class BirdInfo{
     var birdSpecies: String? = null
     var date: String? = null
     var image: String? = null
+    var location: String? = null
 
-constructor(birdName: String?, birdSpecies: String?, date: String?, image: String?)
+constructor(birdName: String?, birdSpecies: String?, date: String?, image: String?,  location: String?)
 {
     this.birdName = birdName
     this.birdSpecies = birdSpecies
     this.date = date
     this.image = image
+    this.location = location
+
 }
 constructor()
 {}

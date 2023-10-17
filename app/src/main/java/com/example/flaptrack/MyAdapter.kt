@@ -44,17 +44,24 @@ class MyAdapter: RecyclerView.Adapter<MyAdapter.EntryViewHolder>() {
         private var recName: TextView? = null
         private var recSpecies: TextView? = null
         private var recDate: TextView? = null
+        private var recLocation: TextView? = null
+
         val recImage: ImageView = itemView.findViewById(R.id.ivBirdPicture)
 
         fun setItem(bird: BirdInfo) {
             recName = itemView.findViewById(R.id.tvBirdName)
             recSpecies = itemView.findViewById(R.id.tvBirdSpecies)
             recDate = itemView.findViewById(R.id.tvDate)
+            recLocation = itemView.findViewById(R.id.tvCurrentLocation)
+
+
 
 
             recName?.text = bird.birdName
             recSpecies?.text = bird.birdSpecies
             recDate?.text = bird.date
+            recLocation?.text = bird.location
+
 
         }
     }

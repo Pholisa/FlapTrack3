@@ -47,10 +47,10 @@ class BirdListView : AppCompatActivity() {
 
 
        firebaseDatabase = FirebaseDatabase.getInstance()
-       databaseReference = firebaseDatabase?.getReference("Bird Information")
+       databaseReference = theDatabase.getReference("users").child(userID!!).child("Bird Information")
 
        initialiseRecycleView()
-       getData()
+       //getData()
 
        //val userId = intent.getStringExtra("useremail") //You need this in order to access data for a specif userID
 
@@ -83,8 +83,12 @@ class BirdListView : AppCompatActivity() {
                     val theImage =
                         it.child("Bird Information").child("image").child("").value.toString()
 
+                    val theLoc =
+                        it.child("Bird Information").child("image").child("").value.toString()
 
-                    val bird = BirdInfo(birdName = theBirdName, birdSpecies =theBirdSpecies, date = theDate, image = theImage)
+
+
+                    val bird = BirdInfo(birdName = theBirdName, birdSpecies =theBirdSpecies, date = theDate, image = theImage, location = theLoc )
                     theArrayList.add(bird)
                 }
                 Log.e("0000", "size: ${theArrayList.size}")

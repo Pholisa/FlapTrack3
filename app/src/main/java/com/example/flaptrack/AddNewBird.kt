@@ -5,6 +5,7 @@ import android.app.Activity
 import android.app.DatePickerDialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
@@ -12,15 +13,14 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.provider.Settings
 import android.widget.Button
-import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.core.app.ActivityCompat
 import coil.load
 import coil.transform.CircleCropTransformation
 import com.example.flaptrack.databinding.ActivityAddNewBirdBinding
+import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ktx.database
@@ -38,6 +38,8 @@ import com.karumi.dexter.listener.single.PermissionListener
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import com.google.android.gms.location.LocationServices
+import android.location.Location
 
 
 
@@ -48,10 +50,12 @@ class AddNewBird : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddNewBirdBinding
 
+    private val LOCATION_PERMISSION_REQUEST_CODE = 1007
+
+
     private val database = Firebase.database
     private val userID = FirebaseAuth.getInstance().currentUser?.uid
-    private val myReference =
-        database.getReference("users").child(userID!!).child("Bird Information")
+    private val myReference = database.getReference("users").child(userID!!).child("Bird Information")
 
 
     //val storage = Firebase.storage
@@ -61,7 +65,10 @@ class AddNewBird : AppCompatActivity() {
     private val cameraRequestCode = 1
     private val galleryRequestCode = 2
 
+    private lateinit var locationClient : FusedLocationProviderClient
+
     private var count = 0
+
 
     private var imageURL: String? = null
     private var imageUri: Uri? = null
@@ -78,7 +85,7 @@ class AddNewBird : AppCompatActivity() {
         textDate = findViewById(R.id.tvDate)
         buttonDate = findViewById(R.id.btnDate)
 
-
+        locationClient = LocationServices.getFusedLocationProviderClient(this)
         binding.btnPickIamge.setOnClickListener {
             galleryCheckPermission()
 
@@ -134,34 +141,91 @@ class AddNewBird : AppCompatActivity() {
         }
 
 
-   private fun UploadingData() {
+    private fun UploadingData() {
+        val name = binding.edBirdName.text.toString()
+        val species = binding.edBirdSpecies.text.toString()
+        val date = binding.tvDate.text.toString()
+        var theLocation = ""  // Declare theLocation as a var
 
-       val name = binding.edBirdName.text.toString()
-       val species = binding.edBirdSpecies.text.toString()
-       val date = binding.tvDate.text.toString()
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            // Get current location
+            locationClient.lastLocation.addOnSuccessListener { location: Location ->
+                location?.let {
+                    val theData = "${it.longitude}, ${it.latitude}"
+
+                    theLocation = theData.toString()
+
+                    // Continue with saving the data here
+                    saveData(name, species, date, theLocation)
+                }
+            }
+        } else {
+            locationRequesting()
+        }
+
+        // The rest of your code
+    }
+
+    private fun saveData(name: String, species: String, date: String, theLocation: String) {
+        if (name.isEmpty() || species.isEmpty() || date.isEmpty()) {
+            Toast.makeText(this, "Please enter all fields", Toast.LENGTH_SHORT).show()
+        } else {
+            val saveClass = BirdInfo(name, species, date, imageURL, theLocation)
+             myReference.push().setValue(saveClass)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Toast.makeText(this@AddNewBird, "Saved", Toast.LENGTH_SHORT).show()
+                        finish()
+                    }
+                }.addOnFailureListener { e ->
+                    Toast.makeText(
+                        this@AddNewBird, e.message.toString(), Toast.LENGTH_SHORT
+                    ).show()
+                }
+        }
+    }
 
 
-       if (binding.edBirdName.text.toString().isEmpty() ||
-           binding.edBirdSpecies.text.toString().isEmpty() ||
-           binding.tvDate.text.toString().isEmpty()
-       ) {
-           Toast.makeText(this, "Please enter all fields", Toast.LENGTH_SHORT).show()
-       } else {
+    private fun locationRequesting() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+            LOCATION_PERMISSION_REQUEST_CODE
+            )
 
-           val saveClass = BirdInfo(name, species, date, imageURL)
-           FirebaseDatabase.getInstance().getReference("users").child(userID!!).child("Bird Information").setValue(saveClass)
-               .addOnCompleteListener { task ->
-                   if (task.isSuccessful) {
-                       Toast.makeText(this@AddNewBird, "Saved", Toast.LENGTH_SHORT).show()
-                       finish()
-                   }
-               }.addOnFailureListener { e ->
-                   Toast.makeText(
-                       this@AddNewBird, e.message.toString(), Toast.LENGTH_SHORT
-                   ).show()
-               }
-       }
-   }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, proceed with getting location
+                UploadingData()
+            } else {
+                // Permission denied, show a dialog to the user
+                if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    AlertDialog.Builder(this)
+                        .setMessage("This app requires location permission to work properly.")
+                        .setPositiveButton("Ask again") { _, _ ->
+                           locationRequesting()
+                        }
+                        .setNegativeButton("Cancel") { dialog, _ ->
+                            dialog.dismiss()
+                        }
+                        .create()
+                        .show()
+                }
+            }
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
 
 
 
