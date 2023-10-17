@@ -19,6 +19,13 @@ class SetDistance : AppCompatActivity() {
 
     private lateinit var binding: ActivitySetDistanceBinding
     private var selectedDistance: Double = 0.0
+    // Initialize Firebase
+    private val userID = FirebaseAuth.getInstance().currentUser?.uid
+    private val database = FirebaseDatabase.getInstance()
+    private val myReference = database.getReference("Hotspot Maximum Distance").child(userID!!)
+    private val myReference2 = database.getReference("Metric").child(userID!!)
+    private var finalDistance: Double = 0.0
+    private var selectedMetric: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,14 +34,40 @@ class SetDistance : AppCompatActivity() {
 
         var seekBarDistance = findViewById<SeekBar>(R.id.seekBarDistance)
         var distance = findViewById<TextView>(R.id.tvMaxDistance)
-        var saveDistance = findViewById<Button>(R.id.btnSetDistance)
+        var saveDistance = findViewById<Button>(R.id.btnSetMetric)
 
-        // Initialize Firebase
-        val userID = FirebaseAuth.getInstance().currentUser?.uid
-        val database = FirebaseDatabase.getInstance()
-        val myReference = database.getReference("Hotspot Maximum Distance").child(userID!!)
+        // Retrieving metric data from Firebase
+        myReference2.child("SelectedMetric").addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot)
+            {
+                if (snapshot.exists()) {
+                    // User has a saved metric
+                    val retrievedData = snapshot.value.toString()
+                    var retrievedMetric = retrievedData
 
-        // Retrieving data from Firebase
+                    if(retrievedMetric == "miles")
+                    {
+                        selectedMetric = "miles"
+                        finalDistance = convertDistance(seekBarDistance.progress.toDouble())
+                    }
+                    else if(retrievedMetric =="kilometres")
+                    {
+                        selectedMetric = "km"
+                    }
+                }
+                else //if there is nothing in databse
+                {
+                    selectedMetric ="km"
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("FirebaseData", "Data retrieval failed: $error")
+            }
+        })
+
+
+        // Retrieving distance data from Firebase
         myReference.child("Distance").addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot)
             {
@@ -71,7 +104,7 @@ class SetDistance : AppCompatActivity() {
 
         saveDistance.setOnClickListener {
             // Display the selected distance in a Toast
-            Toast.makeText(applicationContext, "Distance of $selectedDistance km set", Toast.LENGTH_SHORT).show()
+            Toast.makeText(applicationContext, "Distance of $selectedDistance$selectedMetric set", Toast.LENGTH_SHORT).show()
 
             // Store the selected distance in Firebase
             saveDistanceToFirebase(selectedDistance)
@@ -82,7 +115,6 @@ class SetDistance : AppCompatActivity() {
     }
 
     private fun saveDistanceToFirebase(selectedDistance: Double) {
-        val userID = FirebaseAuth.getInstance().currentUser?.uid
         if (userID != null) {
             val database = FirebaseDatabase.getInstance()
             val myReference = database.getReference("Hotspot Maximum Distance").child(userID)
@@ -92,7 +124,15 @@ class SetDistance : AppCompatActivity() {
         }
     }
 
-    private fun navigationBar() {
+    private fun convertDistance(enterKm:Double) :Double
+    {
+        var convertedVal = enterKm/1.609
+
+        return convertedVal
+    }
+
+    private fun navigationBar()
+    {
         // This will account for event clicking of the navigation bar (similar to if statement format)
         binding.bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {

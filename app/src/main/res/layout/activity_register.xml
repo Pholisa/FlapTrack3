@@ -19,15 +19,16 @@
             android:fontFamily="@font/architects_daughter"
             android:text="CREATE ACCOUNT"
             android:textAlignment="center"
-            android:textSize="24sp" />
+            android:textSize="40sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/tvCreateAcc"
-            android:layout_marginTop="100dp"
+            android:layout_marginTop="0dp"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:padding="20dp"
+            android:gravity="center">
 
             <!-- ... Other EditText and Button Views ... -->
             <EditText
@@ -38,7 +39,8 @@
                 android:drawablePadding="8dp"
                 android:hint="First Name"
                 android:padding="8dp"
-                android:textSize="20dp" />
+                android:textSize="20dp"
+                android:background="@drawable/theborder"/>
             <EditText
                 android:id="@+id/edlastName"
                 android:layout_width="350dp"
@@ -47,7 +49,8 @@
                 android:drawablePadding="8dp"
                 android:hint="Surname"
                 android:padding="8dp"
-                android:textSize="20dp" />
+                android:textSize="20dp"
+                android:background="@drawable/theborder"/>
             <EditText
                 android:id="@+id/edAge"
                 android:layout_width="350dp"
@@ -56,7 +59,8 @@
                 android:drawablePadding="8dp"
                 android:hint="Age"
                 android:padding="8dp"
-                android:textSize="20dp" />
+                android:textSize="20dp"
+                android:background="@drawable/theborder"/>
 
             <EditText
                 android:id="@+id/edEmail"
@@ -66,7 +70,8 @@
                 android:drawablePadding="8dp"
                 android:hint="Email"
                 android:padding="8dp"
-                android:textSize="20dp" />
+                android:textSize="20dp"
+                android:background="@drawable/theborder"/>
 
             <EditText
                 android:id="@+id/edPassword"
@@ -77,7 +82,8 @@
                 android:hint="Password"
                 android:inputType="textPassword"
                 android:padding="8dp"
-                android:textSize="20dp" />
+                android:textSize="20dp"
+                android:background="@drawable/theborder"/>
 
             <EditText
                 android:id="@+id/edPasswordConfirm"
@@ -88,7 +94,8 @@
                 android:hint="Confirm Password"
                 android:inputType="textPassword"
                 android:padding="8dp"
-                android:textSize="20dp" />
+                android:textSize="20dp"
+                android:background="@drawable/theborder"/>
 
             <Button
                 android:id="@+id/btnSignUp"
@@ -112,7 +119,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Already an user? "
-                    android:textSize="18sp" />
+                    android:textSize="15sp" />
 
                 <TextView
                     android:id="@+id/tvLoginRedirectText2"
@@ -121,7 +128,8 @@
                     android:layout_toEndOf="@id/tvLoginRedirectText"
                     android:text="Login"
                     android:textColor="@color/design_default_color_error"
-                    android:textSize="18sp" />
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
             </RelativeLayout>
         </LinearLayout>
     </RelativeLayout>

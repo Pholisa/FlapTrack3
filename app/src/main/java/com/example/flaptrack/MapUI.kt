@@ -55,6 +55,11 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
     private var userLocation: LatLng = LatLng(0.0, 0.0) // Initialize user location
     private var maxDist: Double = 0.0
     private lateinit var binding: ActivityMapUiBinding
+    private val database = FirebaseDatabase.getInstance()
+    private val userID = FirebaseAuth.getInstance().currentUser?.uid
+    private val myReference2 = database.getReference("Metric").child(userID!!)
+    private var selectedMetric: String = ""
+    private var finalMaxDist: Double = 0.0
     override fun onCreate(savedInstanceState: Bundle?)
     {
         super.onCreate(savedInstanceState)
@@ -75,7 +80,36 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
             startActivity(intent)
         }
 
-        //Drawing the direction
+
+        // Retrieving metric data from Firebase
+        myReference2.child("SelectedMetric").addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot)
+            {
+                if (snapshot.exists()) {
+                    // User has a saved metric
+                    val retrievedData = snapshot.value.toString()
+                    var retrievedMetric = retrievedData
+
+                    if(retrievedMetric == "miles")
+                    {
+                        selectedMetric = "miles"
+                        finalMaxDist = convertDistance(maxDist)
+                    }
+                    else if(retrievedMetric =="kilometres")
+                    {
+                        selectedMetric = "km"
+                    }
+                }
+                else //if there is nothing in databse
+                {
+                    selectedMetric ="km"
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("FirebaseData", "Data retrieval failed: $error")
+            }
+        })
 
 
 
@@ -91,7 +125,7 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
         val database = FirebaseDatabase.getInstance()
         val myReference = database.getReference("Hotspot Maximum Distance").child(userID!!)
 
-        // Retrieving data from Firebase
+        // Retrieving max distance data from Firebase
         myReference.child("Distance").addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot)
             {
@@ -106,6 +140,7 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
                     showToast("Cannot find max distance")
                 }
             }
+
 
             override fun onCancelled(error: DatabaseError) {
                 Log.e("FirebaseData", "Data retrieval failed: $error")
@@ -133,7 +168,7 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
             .addOnSuccessListener { location: Location? ->
                 location?.let {
                     // Add a marker at the device's current location
-                    //val userLocation = LatLng(it.latitude, it.longitude) //actual device location uncomment this
+                    // userLocation = LatLng(it.latitude, it.longitude) //actual device location uncomment this
                      userLocation = LatLng(-33.8970590380015, 18.48906600246067) //hard coded location to finish app from
                     val markerOptions = MarkerOptions()
                     markerOptions.position(userLocation)
@@ -189,7 +224,7 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
             state = BottomSheetBehavior.STATE_EXPANDED
 
             locatName.text = p0.title
-            locatDistance.text = "${location} km"
+            locatDistance.text = "${location} $selectedMetric"
 
             direction.setOnClickListener {
                 val url: String? = getDirectionsUrl(userLocation!!,p0.position!!)
@@ -568,6 +603,13 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
     private fun showToast(message: String)
     {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun convertDistance(enterKm:Double) :Double
+    {
+        var convertedVal = enterKm/1.609
+
+        return convertedVal
     }
 
 }

@@ -61,7 +61,7 @@
                     android:textStyle="bold" />
 
                 <Button
-                    android:id="@+id/btnSetDistance"
+                    android:id="@+id/btnSetMetric"
                     style="?attr/materialButtonOutlinedStyle"
                     android:layout_width="270dp"
                     android:layout_height="70dp"
