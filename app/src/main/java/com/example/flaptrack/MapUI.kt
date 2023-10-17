@@ -53,13 +53,16 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
     private val LOCATION_PERMISSION_REQUEST = 1
     var hotspotList = mutableListOf<HotspotData>()
     private var userLocation: LatLng = LatLng(0.0, 0.0) // Initialize user location
-    private var maxDist: Double = 0.0
     private lateinit var binding: ActivityMapUiBinding
     private val database = FirebaseDatabase.getInstance()
     private val userID = FirebaseAuth.getInstance().currentUser?.uid
-    private val myReference2 = database.getReference("Metric").child(userID!!)
-    private var selectedMetric: String = ""
-    private var finalMaxDist: Double = 0.0
+    private val myReference2 = database.getReference("Metric").child(userID!!) //Instance of the metric cluster
+    private var selectedMetric: String = "" //global variable to store selected metric
+    private var convertedDist: Double = 0.0 //global variable to store converted distance from km to miles
+    private var myDistance: Double = 0.0 //global variable to store final distance
+    private var  routeDistance: Double = 0.0 //global variable to keep track of distance to display route
+
+    val myReference = database.getReference("Hotspot Maximum Distance").child(userID!!) //Instance of maximum hotspot max distance cluster
     override fun onCreate(savedInstanceState: Bundle?)
     {
         super.onCreate(savedInstanceState)
@@ -80,59 +83,16 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
             startActivity(intent)
         }
 
-
-        // Retrieving metric data from Firebase
-        myReference2.child("SelectedMetric").addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot)
-            {
-                if (snapshot.exists()) {
-                    // User has a saved metric
-                    val retrievedData = snapshot.value.toString()
-                    var retrievedMetric = retrievedData
-
-                    if(retrievedMetric == "miles")
-                    {
-                        selectedMetric = "miles"
-                        finalMaxDist = convertDistance(maxDist)
-                    }
-                    else if(retrievedMetric =="kilometres")
-                    {
-                        selectedMetric = "km"
-                    }
-                }
-                else //if there is nothing in databse
-                {
-                    selectedMetric ="km"
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.e("FirebaseData", "Data retrieval failed: $error")
-            }
-        })
-
-
-
-
-    }
-
-    //----------------------------------------------------------------------------------------------
-    override fun onMapReady(googleMap: GoogleMap)
-    {
-        //setting max distance
-        // Initialize Firebase
-        val userID = FirebaseAuth.getInstance().currentUser?.uid
-        val database = FirebaseDatabase.getInstance()
-        val myReference = database.getReference("Hotspot Maximum Distance").child(userID!!)
-
         // Retrieving max distance data from Firebase
         myReference.child("Distance").addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot)
             {
-                if (snapshot.exists()) {
+                if (snapshot.exists())
+                {
                     // User has a saved distance, set it to the SeekBar
                     val retrievedData = snapshot.value.toString()
-                    maxDist = retrievedData.toDouble()
+                    myDistance = retrievedData.toDouble()
+
 
                 }
                 else
@@ -142,13 +102,52 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
             }
 
 
-            override fun onCancelled(error: DatabaseError) {
+            override fun onCancelled(error: DatabaseError)
+            {
                 Log.e("FirebaseData", "Data retrieval failed: $error")
             }
         })
 
-        //val maxDist = intent.getStringExtra("value_key")
-        //textViewReceivedData.text = "Received Data: $receivedValue"
+
+        // Retrieving metric data from Firebase
+        myReference2.child("SelectedMetric").addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot)
+            {
+                if (snapshot.exists())
+                {
+                    // User has a saved metric
+                    val retrievedData = snapshot.value.toString()
+                    var retrievedMetric = retrievedData
+
+                    if(retrievedMetric == "miles")
+                    {
+                        selectedMetric = "miles"
+                       convertedDist = convertDistance(myDistance)
+                       myDistance = convertedDist
+
+                    }
+                    else if(retrievedMetric =="kilometres")
+                    {
+                        selectedMetric = "km"
+                       // location = convertedDist
+                    }
+                }
+                else // if there is nothing in database
+                {
+                    selectedMetric ="km"
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("FirebaseData", "Data retrieval failed: $error")
+            }
+        })
+    }
+
+    //----------------------------------------------------------------------------------------------
+    override fun onMapReady(googleMap: GoogleMap)
+    {
+        //setting max distance
 
         mMap = googleMap
 
@@ -158,7 +157,6 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
             ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION), LOCATION_PERMISSION_REQUEST)
             return
         }
-
 
         // Enable My Location button and show the user's location on the map
         mMap.isMyLocationEnabled = true
@@ -196,7 +194,7 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
 
                         runOnUiThread {
                             // Pass the userLocation to consumeJson
-                            consumeJson(hotspot, userLocation, maxDist)
+                            consumeJson(hotspot, userLocation, myDistance)
                             searchFunction(hotspot)
                         }
                     }
@@ -217,14 +215,27 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
         val locatDistance= findViewById<TextView>(R.id.tvLocatDist)
         val direction = findViewById<Button>(R.id.btnDirec)
 
-        val location = searchArea(userLocation,p0.position)
+
+        val location1 = searchArea(userLocation,p0.position)
+
+
+         if(selectedMetric =="km")
+        {
+            routeDistance = location1.toDouble()
+
+        }
+        else if(selectedMetric =="miles")
+        {
+            routeDistance = location1.toDouble()/1.609344
+        }
+
 
         BottomSheetBehavior.from(sheet1).apply {
             peekHeight = 100
             state = BottomSheetBehavior.STATE_EXPANDED
 
             locatName.text = p0.title
-            locatDistance.text = "${location} $selectedMetric"
+            locatDistance.text = "$routeDistance $selectedMetric" //Displaying route distance and selected metric to the screen
 
             direction.setOnClickListener {
                 val url: String? = getDirectionsUrl(userLocation!!,p0.position!!)
@@ -384,6 +395,7 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
     //----------------------------------------------------------------------------------------------
 
     //----------------------------------------------------------------------------------------------
+    //calculating distance in km
     private fun searchArea(myLocation: LatLng, endLocation: LatLng) :String
     {
         val results = FloatArray(1) // Change the array size to 1
@@ -481,7 +493,8 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
                                     }
                         }
                     }
-            } catch (e: JSONException)
+            }
+            catch (e: JSONException)
             {
                 // Handle JSON parsing errors
                 e.printStackTrace()
@@ -574,7 +587,8 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
                             showToast("No matching hotspot found")
                         }
 
-                    } catch (e: JSONException)
+                    }
+                    catch (e: JSONException)
                     {
                         e.printStackTrace()
                     }
