@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.flaptrack.databinding.ActivityBirdsUiBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -22,6 +23,8 @@ class BirdsUi : AppCompatActivity() {
     private lateinit var adapter: MyAdapter
     var databaseReference: DatabaseReference? = null
     var eventListener: ValueEventListener? = null
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,6 +45,8 @@ class BirdsUi : AppCompatActivity() {
         binding.rvBirdListView.adapter = adapter
         databaseReference = FirebaseDatabase.getInstance().getReference("Bird Preview")
         dialog.show()
+
+
 
         eventListener = databaseReference!!.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -64,11 +69,23 @@ class BirdsUi : AppCompatActivity() {
         })
 
 
-
-        binding.floatButton.setOnClickListener{
+        binding.floatButton.setOnClickListener {
             val addBirdIntent = Intent(this, AddNewBird::class.java)
             startActivity(addBirdIntent)
         }
+
+//        binding.svSearchBirds.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+//            override fun onQueryTextSubmit(query: String?): Boolean {
+//                return false
+//            }
+//
+//            override fun onQueryTextChange(newText: String): Boolean {
+//                searchList(newText)
+//                return true
+//            }
+//        })
+//
+
 
         MaterialAlertDialogBuilder(this)
             .setTitle("Welcome")
@@ -88,8 +105,18 @@ class BirdsUi : AppCompatActivity() {
         navigationBar()
     }
 
-    private fun displayMetricSelection()
-    {
+    private fun searchList(text : String) {
+        val searchList = ArrayList<BirdInfo>()
+        for(birdInfo in theArrayList)
+        {
+            if(birdInfo.birdName?.lowercase()?.contains(text.lowercase()) == true){
+                searchList.add(birdInfo)
+            }
+        }
+        adapter.searchDataList(searchList)
+    }
+
+    private fun displayMetricSelection() {
         val singleItems = arrayOf("Kilometres", "Miles")
         val checkedItem = 1
 
@@ -99,8 +126,10 @@ class BirdsUi : AppCompatActivity() {
                 // Respond to neutral button press
                 MaterialAlertDialogBuilder(this)
                     .setTitle("Got You!")
-                    .setMessage("You can change the metric in the account section at the bottom navigation." +
-                            "\nFor now, default settings are set to km!")
+                    .setMessage(
+                        "You can change the metric in the account section at the bottom navigation." +
+                                "\nFor now, default settings are set to km!"
+                    )
                     .setNeutralButton("Ok") { dialog, which ->
                         dialog.dismiss()
                     }
@@ -116,6 +145,7 @@ class BirdsUi : AppCompatActivity() {
             }
             .show()
     }
+
 
     fun navigationBar()
     {
@@ -142,3 +172,4 @@ class BirdsUi : AppCompatActivity() {
         }
     }
 }
+

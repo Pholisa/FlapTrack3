@@ -24,6 +24,11 @@ class MyAdapter(private val context: android.content.Context, private var arrayL
     override fun getItemCount(): Int {
         return arrayList.size
     }
+
+    fun searchDataList(searchList: List<BirdInfo>){
+        arrayList = searchList
+        notifyDataSetChanged()
+    }
 }
 class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
     var recImage: ImageView

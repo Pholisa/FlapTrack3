@@ -46,18 +46,26 @@ class AddNewBird : AppCompatActivity() {
     private lateinit var textDate: TextView
     private lateinit var buttonDate: Button
 
-    private lateinit var binding :ActivityAddNewBirdBinding
+    private lateinit var binding: ActivityAddNewBirdBinding
 
     private val database = Firebase.database
     private val userID = FirebaseAuth.getInstance().currentUser?.uid
-    private val myReference = database.getReference("users").child(userID!!).child("Bird Information")
+    private val myReference =
+        database.getReference("users").child(userID!!).child("Bird Information")
 
 
-    private var imageURL : String? = null
-    private var imageUri: Uri?=null
+    //val storage = Firebase.storage
+    private lateinit var storageRef: StorageReference
 
+
+    private val cameraRequestCode = 1
+    private val galleryRequestCode = 2
 
     private var count = 0
+
+    private var imageURL: String? = null
+    private var imageUri: Uri? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,30 +78,18 @@ class AddNewBird : AppCompatActivity() {
         textDate = findViewById(R.id.tvDate)
         buttonDate = findViewById(R.id.btnDate)
 
-        val activityResultLauncher = registerForActivityResult<Intent, ActivityResult>(
-            ActivityResultContracts.StartActivityForResult()
-        ){result->
-            if(result.resultCode == RESULT_OK){
-                val data = result.data
-                imageUri = data!!.data
-                binding.ivImage.setImageURI(imageUri)
-            }
-            else{
-                Toast.makeText(this@AddNewBird, "No Image Selected", Toast.LENGTH_SHORT).show()
-            }
 
+        binding.btnPickIamge.setOnClickListener {
+            galleryCheckPermission()
 
         }
+        binding.btnCaptureImage.setOnClickListener {
 
-        binding.btnPickIamge.setOnClickListener{
-            val photoPicker = Intent(Intent.ACTION_PICK)
-            photoPicker.type = "image/*"
-            activityResultLauncher.launch(photoPicker)
-        }
+          cameraCheckPermission()        }
+        binding.btnSave.setOnClickListener {
 
-        binding.btnSave.setOnClickListener{
+            savingData()
 
-            SavingData()
         }
 
 
@@ -114,57 +110,87 @@ class AddNewBird : AppCompatActivity() {
     }
 
 
-    private fun SavingData() {
 
-        val storageReference = FirebaseStorage.getInstance().reference.child("Task Image").child(imageUri!!.lastPathSegment!!)
+    private fun savingData() {
 
-        val builder = AlertDialog.Builder(this@AddNewBird)
+       val storageReference = FirebaseStorage.getInstance().reference.child("Task Image")
+          .child(imageUri!!.lastPathSegment!!)
+
+     val builder = AlertDialog.Builder(this@AddNewBird)
         builder.setCancelable(false)
         builder.setView(R.layout.progress_layout)
         val dialog = builder.create()
         dialog.show()
-
-        storageReference.putFile(imageUri!!).addOnSuccessListener {
-            taskSnapshot->
+        storageReference.putFile(imageUri!!).addOnSuccessListener { taskSnapshot ->
             val uriTask = taskSnapshot.storage.downloadUrl
-            while(!uriTask.isComplete);
+            while (!uriTask.isComplete);
             val urlImage = uriTask.result
             imageURL = urlImage.toString()
             UploadingData()
-
             dialog.dismiss()
-        }.addOnFailureListener{
+        }.addOnFailureListener {
             dialog.dismiss()
         }
-    }
-
-    private fun UploadingData() {
-
-        val name = binding.edBirdName.text.toString()
-        val species = binding.edBirdSpecies.text.toString()
-        val date = binding.tvDate.text.toString()
-
-
-        if (binding.edBirdName.text.toString().isEmpty() ||
-            binding.edBirdSpecies.text.toString().isEmpty() ||
-            binding.tvDate.text.toString().isEmpty()
-        ) {
-            Toast.makeText(this, "Please enter all fields", Toast.LENGTH_SHORT).show()
         }
-        else {
 
-            val saveClass = BirdInfo(name, species, date, imageURL)
-            FirebaseDatabase.getInstance().getReference("Business Information").setValue(saveClass).addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        Toast.makeText(this@AddNewBird, "Saved", Toast.LENGTH_SHORT).show()
-                        finish()
-                    }
-                }.addOnFailureListener { e ->
-                    Toast.makeText(
-                        this@AddNewBird, e.message.toString(), Toast.LENGTH_SHORT
-                    ).show()
+
+   private fun UploadingData() {
+
+       val name = binding.edBirdName.text.toString()
+       val species = binding.edBirdSpecies.text.toString()
+       val date = binding.tvDate.text.toString()
+
+
+       if (binding.edBirdName.text.toString().isEmpty() ||
+           binding.edBirdSpecies.text.toString().isEmpty() ||
+           binding.tvDate.text.toString().isEmpty()
+       ) {
+           Toast.makeText(this, "Please enter all fields", Toast.LENGTH_SHORT).show()
+       } else {
+
+           val saveClass = BirdInfo(name, species, date, imageURL)
+           FirebaseDatabase.getInstance().getReference("Business Information").setValue(saveClass)
+               .addOnCompleteListener { task ->
+                   if (task.isSuccessful) {
+                       Toast.makeText(this@AddNewBird, "Saved", Toast.LENGTH_SHORT).show()
+                       finish()
+                   }
+               }.addOnFailureListener { e ->
+                   Toast.makeText(
+                       this@AddNewBird, e.message.toString(), Toast.LENGTH_SHORT
+                   ).show()
+               }
+       }
+   }
+
+
+
+
+    private fun galleryCheckPermission() {
+
+        Dexter.withContext(this).withPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
+            .withListener(object : PermissionListener {
+                override fun onPermissionGranted(p0: PermissionGrantedResponse?) {
+                    gallery()
                 }
-        }
+
+                override fun onPermissionDenied(p0: PermissionDeniedResponse?) {
+                    Toast.makeText(
+                        this@AddNewBird,
+                        "You have denied the storage permission to select image",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    showRorationalDialogForPermission()
+                }
+
+                override fun onPermissionRationaleShouldBeShown(
+                    p0: PermissionRequest?,
+                    p1: PermissionToken?
+                ) {
+                    showRorationalDialogForPermission()
+                }
+
+            }).onSameThread().check()
 
     }
 
@@ -174,7 +200,98 @@ class AddNewBird : AppCompatActivity() {
         textDate.setText(sdf.format(calendar.time))
     }
 
+    private fun gallery() {
+        val intent = Intent(Intent.ACTION_PICK)
+        intent.type = "image/*"
+        startActivityForResult(intent, galleryRequestCode)
+    }
 
+    private fun cameraCheckPermission() {
+        Dexter.withContext(this).withPermissions(
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.CAMERA
+        ).withListener(
+            object : MultiplePermissionsListener {
+                override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
+                    report?.let {
+                        if (report.areAllPermissionsGranted()) {
+                            camera()
+                        }
+                    }
+
+                }
+
+                override fun onPermissionRationaleShouldBeShown(
+                    p0: MutableList<PermissionRequest>?,
+                    p1: PermissionToken?
+                ) {
+                    showRorationalDialogForPermission()
+                }
+            }
+        ).onSameThread().check()
+    }
+
+
+    private fun camera() {
+        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        startActivityForResult(intent, cameraRequestCode)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == 2 && resultCode == RESULT_OK ) {
+
+            when (requestCode) {
+                cameraRequestCode -> {
+                    val bitmap = data?.extras?.get("data") as Bitmap
+                    binding.ivImage.load(bitmap)
+                    {
+                        crossfade(true)
+                        crossfade(1000)
+                        transformations(CircleCropTransformation())
+                    }
+                    this.imageUri = data.data!!
+
+                }
+
+                galleryRequestCode -> {
+
+                    binding.ivImage.load(data?.data)
+                    {
+                        crossfade(true)
+                        crossfade(1000)
+                        transformations(CircleCropTransformation())
+
+                    }
+                    this.imageUri = data?.data
+                }
+            }
+        }
+    }
+
+
+    private fun showRorationalDialogForPermission() {
+        AlertDialog.Builder(this).setMessage(
+            "It looks like you have turned off permissions" +
+                    "required for this feature. It can be enabled under App settings!!!"
+        )
+            .setPositiveButton("Go To SETTINGS") { _, _ ->
+                try {
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                    val uri = Uri.fromParts("package", packageName, null)
+                    intent.data = uri
+                    startActivity(intent)
+                } catch (e: ActivityNotFoundException) {
+                    e.printStackTrace()
+                }
+            }
+            .setNegativeButton("CANCEL") { dialog, _ ->
+                dialog.dismiss()
+            }.show()
+
+
+    }
 
     fun navigationBar() {
         //This will account for event clicking of the navigation bar (similar to if statement format)
@@ -200,5 +317,6 @@ class AddNewBird : AppCompatActivity() {
             }
             true
         }
+
     }
-}
+    }
