@@ -30,6 +30,11 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.android.gms.maps.model.PolylineOptions
 import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -48,6 +53,7 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
     private val LOCATION_PERMISSION_REQUEST = 1
     var hotspotList = mutableListOf<HotspotData>()
     private var userLocation: LatLng = LatLng(0.0, 0.0) // Initialize user location
+    private var maxDist: Double = 0.0
     private lateinit var binding: ActivityMapUiBinding
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -72,13 +78,41 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
         //Drawing the direction
 
 
+
+
     }
 
     //----------------------------------------------------------------------------------------------
     override fun onMapReady(googleMap: GoogleMap)
     {
+        //setting max distance
+        // Initialize Firebase
+        val userID = FirebaseAuth.getInstance().currentUser?.uid
+        val database = FirebaseDatabase.getInstance()
+        val myReference = database.getReference("Hotspot Maximum Distance").child(userID!!)
 
-        val maxDist = intent.getStringExtra("value_key")
+        // Retrieving data from Firebase
+        myReference.child("Distance").addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot)
+            {
+                if (snapshot.exists()) {
+                    // User has a saved distance, set it to the SeekBar
+                    val retrievedData = snapshot.value.toString()
+                    maxDist = retrievedData.toDouble()
+
+                }
+                else
+                {
+                    showToast("Cannot find max distance")
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("FirebaseData", "Data retrieval failed: $error")
+            }
+        })
+
+        //val maxDist = intent.getStringExtra("value_key")
         //textViewReceivedData.text = "Received Data: $receivedValue"
 
         mMap = googleMap
@@ -106,8 +140,8 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
                     markerOptions.title("Your Locationnn")
                     mMap.addMarker(markerOptions)
 
-                    // Move the camera to the device's current location
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15f))
+                    // How zoomed in the map will be.
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 8f))
 
                     // Initialize NetworkUtil
                     val networkUtil = NetworkUtil()
@@ -356,7 +390,7 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
     //----------------------------------------------------------------------------------------------
 
     //----------------------------------------------------------------------------------------------
-    private fun consumeJson(hotspotJSON: String?, userLocat: LatLng, maxDist: String?)
+    private fun consumeJson(hotspotJSON: String?, userLocat: LatLng, maxDist: Double)
     {
         if (hotspotJSON != null)
         {
@@ -364,7 +398,7 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
                 val rootHotspotData = JSONArray(hotspotJSON)
 
                 // Define the user's maximum allowed distance (in kilometers)
-                val maxDistance = 5.0 // Change this value to your desired maximum distance
+               // val maxDistance = 5.0 // Change this value to your desired maximum distance
 
 
                 val userLocation = userLocat
@@ -398,7 +432,7 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
                                         val distance = calculateDistance(userLocation, hotspotLocation)
 
                                         // Check if the hotspot is within the specified distance
-                                        if (distance <= maxDistance)
+                                        if (distance <= maxDist)
                                         {
                                             val markerOptions = MarkerOptions()
                                                 .position(hotspotLocation)
