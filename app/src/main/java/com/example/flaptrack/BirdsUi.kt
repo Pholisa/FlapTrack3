@@ -25,7 +25,6 @@ class BirdsUi : AppCompatActivity() {
 
     private lateinit var binding: ActivityBirdsUiBinding
 
-    private lateinit var adapter : BirdAdapter
 
     private lateinit var recyclerView: RecyclerView
     private val userID = FirebaseAuth.getInstance().currentUser?.uid
