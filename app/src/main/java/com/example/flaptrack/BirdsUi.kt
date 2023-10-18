@@ -3,13 +3,9 @@ package com.example.flaptrack
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.SearchView
-import androidx.appcompat.app.AlertDialog
 import android.util.Log
-import android.widget.Toast
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.flaptrack.databinding.ActivityBirdsUiBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.FirebaseAuth
@@ -25,15 +21,16 @@ class BirdsUi : AppCompatActivity() {
 
     private lateinit var binding: ActivityBirdsUiBinding
 
-    private lateinit var adapter : BirdAdapter
-
-    private lateinit var recyclerView: RecyclerView
-    private val userID = FirebaseAuth.getInstance().currentUser?.uid
-    private lateinit var birdArrayList: ArrayList<BirdieInfo>
-    private lateinit var databaseReference: DatabaseReference
-
-    var firebaseDatabase: FirebaseDatabase? = null
+    private lateinit var theArrayList: ArrayList<BirdInfo>
+    private lateinit var theAdapter: MyAdapter
+    var firebaseDatabase : FirebaseDatabase ?=null
     private val theDatabase = Firebase.database
+    var databaseReference: DatabaseReference? = null
+    var eventListener: ValueEventListener? = null
+
+    private val userID = FirebaseAuth.getInstance().currentUser?.uid
+
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,31 +38,14 @@ class BirdsUi : AppCompatActivity() {
         binding = ActivityBirdsUiBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val gridLayoutManager = GridLayoutManager(this@BirdsUi, 1)
+        binding.rvBirdListView.layoutManager = gridLayoutManager
 
-
-        recyclerView = findViewById(R.id.rvBirdListView)
-        recyclerView.layoutManager = LinearLayoutManager(this)
-
-        birdArrayList = arrayListOf()
-
-        databaseReference = FirebaseDatabase.getInstance().getReference("users").child(userID!!).child("Birdie Information")
-        databaseReference.addValueEventListener(object : ValueEventListener{
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if(snapshot.exists()){
-                    for(birdSnapshot in snapshot.children){
-                        val birdie = birdSnapshot.getValue(BirdieInfo::class.java)
-                        if(!birdArrayList.contains(birdie)){
-                            birdArrayList.add(birdie!!)
-                        }
-                    }
-                    recyclerView.adapter = BirdAdapter(birdArrayList)
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(this@BirdsUi, error.toString(), Toast.LENGTH_SHORT).show()
-            }
-        })
+//        val builder = AlertDialog.Builder(this@BirdsUi)
+//        builder.setCancelable(false)
+//        builder.setView(R.layout.progress_layout)
+//        val dialog = builder.create()
+//        dialog.show()
 
 
 
@@ -73,13 +53,22 @@ class BirdsUi : AppCompatActivity() {
             val addBirdIntent = Intent(this, AddNewBird::class.java)
             startActivity(addBirdIntent)
         }
-
-
-
-
+//
+//       binding.svSearchBirds.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+//          override fun onQueryTextSubmit(query: String?): Boolean {
+//             return false
+//           }
+//
+//            override fun onQueryTextChange(newText: String): Boolean {
+//                searchList(newText)
+//               return true
+//           }
+//        })
         firebaseDatabase = FirebaseDatabase.getInstance()
-        databaseReference =
-            theDatabase.getReference("users").child(userID!!).child("Bird Information")
+        databaseReference = theDatabase.getReference("users").child(userID!!).child("Bird Information")
+
+        //initialiseRecycleView()
+        //getData()
 
 
         MaterialAlertDialogBuilder(this)
@@ -100,6 +89,110 @@ class BirdsUi : AppCompatActivity() {
         navigationBar()
     }
 
+    private fun initialiseRecycleView(){
+        theAdapter = MyAdapter()
+        binding.apply {
+            rvBirdListView.layoutManager = LinearLayoutManager(this@BirdsUi)
+            rvBirdListView.adapter = theAdapter
+        }
+    }
+    //******************************************************************************************
+    //Get Values in Database
+    private fun getData() {
+        val databaseReference = FirebaseDatabase.getInstance()
+            .getReference("users")
+            .child(userID!!)
+            .child("Bird Information")
+
+        val dataArrayList = ArrayList<Array<String>>() // Create a list to store arrays of strings
+
+        databaseReference.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                dataArrayList.clear() // Clear the list before adding new data
+
+                for (dataSnapshot in snapshot.children) {
+                    val birdData = dataSnapshot.getValue(BirdInfo::class.java)
+                    birdData?.let {
+                        val theData = arrayOf(
+                            it.birdName.toString(),
+                            it.birdSpecies.toString(),
+                            it.date.toString(),
+                            it.image.toString(),
+                            it.location.toString()
+                        )
+                        dataArrayList.add(theData)
+                    }
+                }
+
+                // Create and set the adapter with the array list
+                val adapter = MyAdapter()
+                adapter.setItem(dataArrayList)
+                binding.rvBirdListView.adapter = adapter
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e("0000", "onCancelled: ${error.toException()}")
+            }
+        })
+    }
+
+
+
+
+
+
+
+
+//    private fun getData(){
+//        databaseReference?.addValueEventListener(object : ValueEventListener{
+//            override fun onDataChange(snapshot: DataSnapshot) {
+//                // Log.e("00000", "onDataChange: $snapshot")
+//                theArrayList.clear()
+//                for (it in snapshot.children){
+//
+//                    val birdData: BirdInfo? = it.getValue(BirdInfo::class.java)
+//                    birdData?.let {
+//                        val theData = arrayOf(
+//                            it.birdSpecies.toString(),
+//                            it.birdName.toString(),
+//                            it.date.toString(),
+//                            it.image.toString(),
+//                            it.location.toString()
+//                        )
+//
+//                        val view = RecyclerView(this@BirdsUi)
+//
+//                        for(item in theData.indices){
+//                            val
+//                        }
+//                    }
+//                    //       val theBirdName = it.child("birdName").toString()
+//                    val theBirdName = it.key
+//                    val theBirdSpecies =
+//                        it.child("birdSpecies").value.toString()
+//                    val theDate =
+//                        it.child("date").getValue().toString()
+//
+//                    val theImage =
+//                        it.child("image").value.toString()
+//
+//                    val theLoc =
+//                        it.child("location").getValue().toString()
+//
+//
+//
+//                    val bird = BirdInfo(birdName = theBirdName, birdSpecies =theBirdSpecies, date = theDate, image = theImage, location = theLoc )
+//                    theArrayList.add(bird)
+//                }
+//                Log.e("0000", "size: ${theArrayList.size}")
+//                theAdapter?.setItem(theArrayList)
+//            }
+//
+//            override fun onCancelled(error: DatabaseError) {
+//                Log.e("0000", "onCancelled: ${error.toException()}")
+//            }
+//        })
+//    }
 
 
 
@@ -139,12 +232,12 @@ class BirdsUi : AppCompatActivity() {
         //This will account for event clicking of the navigation bar (similar to if statement format)
         binding.bottomNavigationView.setOnItemSelectedListener {item ->
             when (item.itemId) {
-
+                /*
                 R.id.idBirds -> {
                     val intent = Intent(this, BirdsUi::class.java)
                     startActivity(intent)
                 }
-
+                 */
                 R.id.idHome -> {
                     val intent = Intent(this, MapUI::class.java)
                     startActivity(intent)
@@ -158,8 +251,6 @@ class BirdsUi : AppCompatActivity() {
             true
         }
     }
-
 }
 
 
-//-------------------------------------ooo000EndOfFile000ooo----------------------------------------
