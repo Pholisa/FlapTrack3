@@ -4,11 +4,8 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.flaptrack.databinding.ActivityBirdsUiBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.firebase.auth.FirebaseAuth
@@ -18,9 +15,7 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
-import com.google.firebase.database.ktx.getValue
 import com.google.firebase.ktx.Firebase
-import java.util.Calendar
 
 class BirdsUi : AppCompatActivity() {
 
@@ -106,23 +101,32 @@ class BirdsUi : AppCompatActivity() {
     private fun getData() {
         val databaseReference = FirebaseDatabase.getInstance()
             .getReference("users")
-            .child(userID!!)  // Assuming userID is a variable holding the user's ID
+            .child(userID!!)
             .child("Bird Information")
+
+        val dataArrayList = ArrayList<Array<String>>() // Create a list to store arrays of strings
 
         databaseReference.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val birdList = ArrayList<BirdInfo>()
+                dataArrayList.clear() // Clear the list before adding new data
 
                 for (dataSnapshot in snapshot.children) {
                     val birdData = dataSnapshot.getValue(BirdInfo::class.java)
                     birdData?.let {
-                        birdList.add(it)
+                        val theData = arrayOf(
+                            it.birdName.toString(),
+                            it.birdSpecies.toString(),
+                            it.date.toString(),
+                            it.image.toString(),
+                            it.location.toString()
+                        )
+                        dataArrayList.add(theData)
                     }
                 }
 
-                // Create and set the adapter
+                // Create and set the adapter with the array list
                 val adapter = MyAdapter()
-                adapter.setItem(birdList)
+                adapter.setItem(dataArrayList)
                 binding.rvBirdListView.adapter = adapter
             }
 
@@ -131,6 +135,7 @@ class BirdsUi : AppCompatActivity() {
             }
         })
     }
+
 
 
 

@@ -35,7 +35,7 @@ class MyAdapter: RecyclerView.Adapter<MyAdapter.EntryViewHolder>() {
         holder.recImage.setImageBitmap(bitmap)
     }
 
-    fun setItem(list: MutableList<BirdInfo>){
+    fun setItem(list: ArrayList<Array<String>>){
         this.arrayList = list
         notifyDataSetChanged()
     }

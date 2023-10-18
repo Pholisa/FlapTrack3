@@ -51,7 +51,7 @@ class BirdListView : AppCompatActivity() {
        databaseReference = theDatabase.getReference("users").child(userID!!).child("Bird Information")
 
        initialiseRecycleView()
-       getData()
+       //getData()
 
        //val userId = intent.getStringExtra("useremail") //You need this in order to access data for a specif userID
 
@@ -68,40 +68,7 @@ class BirdListView : AppCompatActivity() {
     }
     //******************************************************************************************
     //Get Values in Database
-    private fun getData(){
-        databaseReference?.addValueEventListener(object : ValueEventListener{
-            override fun onDataChange(snapshot: DataSnapshot) {
-                // Log.e("00000", "onDataChange: $snapshot")
-                theArrayList.clear()
-                for (it in snapshot.children){
 
-             //       val theBirdName = it.child("birdName").toString()
-                    val theBirdName = it.key
-                    val theBirdSpecies =
-                        it.child("birdSpecies").value.toString()
-                    val theDate =
-                        it.child("date").getValue().toString()
-
-                    val theImage =
-                        it.child("image").value.toString()
-
-                    val theLoc =
-                        it.child("location").getValue().toString()
-
-
-
-                    val bird = BirdInfo(birdName = theBirdName, birdSpecies =theBirdSpecies, date = theDate, image = theImage, location = theLoc )
-                    theArrayList.add(bird)
-                }
-                Log.e("0000", "size: ${theArrayList.size}")
-                theAdapter?.setItem(theArrayList)
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                Log.e("0000", "onCancelled: ${error.toException()}")
-            }
-        })
-    }
 
 //       val gridLayoutManager = GridLayoutManager(this@BirdListView, 1)
 //       binding.rvBirdListView.layoutManager = gridLayoutManager
