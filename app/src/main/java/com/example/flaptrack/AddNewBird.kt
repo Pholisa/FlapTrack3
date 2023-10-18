@@ -168,7 +168,6 @@ class AddNewBird : AppCompatActivity() {
             locationRequesting()
         }
 
-        // The rest of your code
     }
 
     private fun saveData(name: String, species: String, date: String, theLocation: String) {

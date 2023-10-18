@@ -36,7 +36,7 @@ class MyAdapter: RecyclerView.Adapter<MyAdapter.EntryViewHolder>() {
     }
 
     fun setItem(list: ArrayList<Array<String>>){
-        this.arrayList = list
+        //this.arrayList = list
         notifyDataSetChanged()
     }
 
