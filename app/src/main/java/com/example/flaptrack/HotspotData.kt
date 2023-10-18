@@ -5,3 +5,5 @@ class HotspotData {
     var lat               : Double? = null
     var lng               : Double? = null
 }
+
+//-------------------------------------ooo000EndOfFile000ooo----------------------------------------

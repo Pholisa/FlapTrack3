@@ -8,29 +8,26 @@
     android:background="@drawable/backgroundtransparent"
     tools:context=".Search">
 
-
-
-    <RelativeLayout
-        android:id="@+id/rlSearch"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="Scrollable Content"
+        app:layout_constraintBottom_toTopOf="@+id/bottomNavigationView"
         app:layout_constraintTop_toTopOf="parent"
-        android:elevation="5dp">
+        app:layout_constraintVertical_bias="0.272"
+        tools:layout_editor_absoluteX="10dp">
 
-        <SearchView
-            android:id="@+id/svSearchBirds"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:queryHint="Search"
-            android:layout_weight="1"
-            android:background="@drawable/bg_search_view"
-            android:iconifiedByDefault="false"
-           />
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvBirdListView"
+                android:layout_width="match_parent"
+                android:layout_height="500dp"
+                app:layout_constraintBaseline_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:listitem="@layout/list_bird_item" />
 
-    </RelativeLayout>
+    </ScrollView>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/floatButton"
@@ -44,8 +41,7 @@
         android:src="@drawable/baseline_add_24"
         app:tint="@color/white"
         app:layout_constraintBottom_toTopOf="@+id/bottomNavigationView"
-        app:layout_constraintEnd_toEndOf="parent"
-        />
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigationView"
@@ -54,32 +50,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:menu="@menu/bottom_nav">
-    </com.google.android.material.bottomnavigation.BottomNavigationView>
+        app:menu="@menu/bottom_nav" />
 
-
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginVertical="90dp"
-        android:contentDescription="Scrollable Content"
-        app:layout_constraintBottom_toTopOf="@+id/bottomNavigationView"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.272"
-        tools:layout_editor_absoluteX="10dp">
-
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvBirdListView"
-            android:layout_width="match_parent"
-            android:layout_height="450dp"
-            app:layout_constraintBaseline_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:listitem="@layout/activity_bird_list_item"
-
-            />
-    </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

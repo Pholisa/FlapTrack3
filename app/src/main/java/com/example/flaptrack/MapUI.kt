@@ -56,13 +56,14 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
     private lateinit var binding: ActivityMapUiBinding
     private val database = FirebaseDatabase.getInstance()
     private val userID = FirebaseAuth.getInstance().currentUser?.uid
-    private val myReference2 = database.getReference("Metric").child(userID!!) //Instance of the metric cluster
+    private val myReference2 = database.getReference("users").child(userID!!) //Instance of the metric cluster
     private var selectedMetric: String = "" //global variable to store selected metric
     private var convertedDist: Double = 0.0 //global variable to store converted distance from km to miles
     private var myDistance: Double = 0.0 //global variable to store final distance
     private var  routeDistance: Double = 0.0 //global variable to keep track of distance to display route
 
     val myReference = database.getReference("Hotspot Maximum Distance").child(userID!!) //Instance of maximum hotspot max distance cluster
+
     override fun onCreate(savedInstanceState: Bundle?)
     {
         super.onCreate(savedInstanceState)
@@ -92,8 +93,6 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
                     // User has a saved distance, set it to the SeekBar
                     val retrievedData = snapshot.value.toString()
                     myDistance = retrievedData.toDouble()
-
-
                 }
                 else
                 {

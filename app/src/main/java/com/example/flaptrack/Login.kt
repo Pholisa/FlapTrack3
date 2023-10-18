@@ -50,6 +50,7 @@ class Login : AppCompatActivity() {
 
         }
 
+        //Create new password when password is forgotten
         binding.tvForgotRedirectText.setOnClickListener{
             val builder = AlertDialog.Builder(this)
             val view = layoutInflater.inflate(R.layout.activity_forgot_password, null)
@@ -102,3 +103,5 @@ class Login : AppCompatActivity() {
         }
     }
 }
+
+//-------------------------------------ooo000EndOfFile000ooo----------------------------------------

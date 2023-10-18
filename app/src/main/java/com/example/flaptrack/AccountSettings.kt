@@ -18,7 +18,6 @@ class AccountSettings : AppCompatActivity() {
 
         var setDistance = findViewById<TextView>(R.id.tvSetMaxDistance)
         var changeMetric = findViewById<TextView>(R.id.tvChangeMetric)
-        var badges = findViewById<TextView>(R.id.tvBadges)
         var about = findViewById<TextView>(R.id.tvAbout)
         var deleteAccount = findViewById<TextView>(R.id.tvDeleteProfile)
         var logout = findViewById<TextView>(R.id.tvLogout)
@@ -31,8 +30,7 @@ class AccountSettings : AppCompatActivity() {
         setTheDistanceUI(setDistance)
         //Calling change metric method
         changeTheMetricUI(changeMetric)
-        //calling badges method
-        badgesUI(badges)
+
         //calling about function
         aboutUI(about)
         //calling the delete account function
@@ -83,13 +81,6 @@ class AccountSettings : AppCompatActivity() {
         }
     }
 
-    private fun badgesUI(badges : TextView)
-    {
-        badges.setOnClickListener{
-            val intent = Intent(this, ViewBadge::class.java)
-            startActivity(intent)
-        }
-    }
 
     private fun aboutUI(about : TextView)
     {
@@ -135,3 +126,5 @@ class AccountSettings : AppCompatActivity() {
         }
     }
 }
+
+//-------------------------------------ooo000EndOfFile000ooo----------------------------------------

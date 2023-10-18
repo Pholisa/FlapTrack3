@@ -13,16 +13,8 @@ class BirdInfo(
     constructor():this(null, null, null, null, null)
 
 }
-/*
-constructor(birdName: String?, birdSpecies: String?, date: String?, image: String?,  location: String?)
-{
-    this.birdName = birdName
-    this.birdSpecies = birdSpecies
-    this.date = date
-    this.image = image
-    this.location = location
 
-}
-*/
+
+//-------------------------------------ooo000EndOfFile000ooo----------------------------------------
 
 

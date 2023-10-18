@@ -1,6 +1,7 @@
 package com.example.flaptrack
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.DatePickerDialog
 import android.content.ActivityNotFoundException
@@ -45,6 +46,8 @@ import android.location.Location
 
 class AddNewBird : AppCompatActivity() {
 
+    //Declaring
+
     private lateinit var textDate: TextView
     private lateinit var buttonDate: Button
 
@@ -52,23 +55,16 @@ class AddNewBird : AppCompatActivity() {
 
     private val LOCATION_PERMISSION_REQUEST_CODE = 1007
 
-
     private val database = Firebase.database
     private val userID = FirebaseAuth.getInstance().currentUser?.uid
     private val myReference = database.getReference("users").child(userID!!).child("Bird Information")
-
-
-    //val storage = Firebase.storage
-    private lateinit var storageRef: StorageReference
+    private val myReferenceTwo = database.getReference("users").child(userID!!).child("Birdie Information")
 
 
     private val cameraRequestCode = 1
     private val galleryRequestCode = 2
 
     private lateinit var locationClient : FusedLocationProviderClient
-
-    private var count = 0
-
 
     private var imageURL: String? = null
     private var imageUri: Uri? = null
@@ -81,25 +77,22 @@ class AddNewBird : AppCompatActivity() {
 
         navigationBar()
 
-
         textDate = findViewById(R.id.tvDate)
         buttonDate = findViewById(R.id.btnDate)
-
         locationClient = LocationServices.getFusedLocationProviderClient(this)
+
+
         binding.btnPickIamge.setOnClickListener {
             galleryCheckPermission()
 
         }
-        binding.btnCaptureImage.setOnClickListener {
-
-          cameraCheckPermission()        }
         binding.btnSave.setOnClickListener {
 
             savingData()
-
-
         }
 
+
+        //----------Calendar functionality-----------------------------------------------------//
 
         val calendarBox = Calendar.getInstance()
         val dateBox = DatePickerDialog.OnDateSetListener { datePicker, year, month, day ->
@@ -119,9 +112,10 @@ class AddNewBird : AppCompatActivity() {
 
 
 
+    @SuppressLint("SuspiciousIndentation")
     private fun savingData() {
 
-       val storageReference = FirebaseStorage.getInstance().reference.child("Task Image")
+       val storageReference = FirebaseStorage.getInstance().reference.child("Bird Image")
           .child(imageUri!!.lastPathSegment!!)
 
      val builder = AlertDialog.Builder(this@AddNewBird)
@@ -129,6 +123,7 @@ class AddNewBird : AppCompatActivity() {
         builder.setView(R.layout.progress_layout)
         val dialog = builder.create()
         dialog.show()
+
         storageReference.putFile(imageUri!!).addOnSuccessListener { taskSnapshot ->
             val uriTask = taskSnapshot.storage.downloadUrl
             while (!uriTask.isComplete);
@@ -170,12 +165,19 @@ class AddNewBird : AppCompatActivity() {
 
     }
 
+
+    //----------Saving all the data in the database-----------------------------------------------------//
+
     private fun saveData(name: String, species: String, date: String, theLocation: String) {
         if (name.isEmpty() || species.isEmpty() || date.isEmpty()) {
             Toast.makeText(this, "Please enter all fields", Toast.LENGTH_SHORT).show()
         } else {
             val saveClass = BirdInfo(name, species, date, imageURL, theLocation)
-             myReference.push().setValue(saveClass)
+            val birdSave = BirdieInfo(name, species, date, theLocation)
+
+            myReferenceTwo.push().setValue( birdSave)
+
+            myReference.push().setValue(saveClass)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
                         Toast.makeText(this@AddNewBird, "Saved", Toast.LENGTH_SHORT).show()
@@ -199,6 +201,8 @@ class AddNewBird : AppCompatActivity() {
             )
 
     }
+
+    //----------Permission to location---------------------------------------------------------------///
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -230,6 +234,7 @@ class AddNewBird : AppCompatActivity() {
 
 
 
+    //----------Permission to access external storage-----------------------------------------------------//
 
     private fun galleryCheckPermission() {
 
@@ -265,42 +270,13 @@ class AddNewBird : AppCompatActivity() {
         textDate.setText(sdf.format(calendar.time))
     }
 
+    //----------Saving Image-------------------------------------
     private fun gallery() {
         val intent = Intent(Intent.ACTION_PICK)
         intent.type = "image/*"
         startActivityForResult(intent, galleryRequestCode)
     }
 
-    private fun cameraCheckPermission() {
-        Dexter.withContext(this).withPermissions(
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.CAMERA
-        ).withListener(
-            object : MultiplePermissionsListener {
-                override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
-                    report?.let {
-                        if (report.areAllPermissionsGranted()) {
-                            camera()
-                        }
-                    }
-
-                }
-
-                override fun onPermissionRationaleShouldBeShown(
-                    p0: MutableList<PermissionRequest>?,
-                    p1: PermissionToken?
-                ) {
-                    showRorationalDialogForPermission()
-                }
-            }
-        ).onSameThread().check()
-    }
-
-
-    private fun camera() {
-        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        startActivityForResult(intent, cameraRequestCode)
-    }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -362,12 +338,12 @@ class AddNewBird : AppCompatActivity() {
         //This will account for event clicking of the navigation bar (similar to if statement format)
         binding.bottomNavigationView.setOnItemSelectedListener { item ->
             when (item.itemId) {
-                /*
+
                 R.id.idBirds -> {
                     val intent = Intent(this, BirdsUi::class.java)
                     startActivity(intent)
                 }
-                 */
+
                 R.id.idHome -> {
                     val intent = Intent(this, MapUI::class.java)
                     startActivity(intent)
@@ -385,3 +361,4 @@ class AddNewBird : AppCompatActivity() {
 
     }
     }
+//-------------------------------------ooo000EndOfFile000ooo----------------------------------------
