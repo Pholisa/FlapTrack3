@@ -1,9 +1,11 @@
 package com.example.flaptrack
 
 import android.Manifest
+import android.app.Activity
 import android.app.DatePickerDialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
@@ -13,12 +15,14 @@ import android.provider.Settings
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.core.app.ActivityCompat
 import coil.load
 import coil.transform.CircleCropTransformation
 import com.example.flaptrack.databinding.ActivityAddNewBirdBinding
+import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
@@ -34,6 +38,8 @@ import com.karumi.dexter.listener.single.PermissionListener
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
+import com.google.android.gms.location.LocationServices
+import android.location.Location
 
 
 
@@ -42,31 +48,58 @@ class AddNewBird : AppCompatActivity() {
     private lateinit var textDate: TextView
     private lateinit var buttonDate: Button
 
-    private lateinit var binding :ActivityAddNewBirdBinding
+    private lateinit var binding: ActivityAddNewBirdBinding
+
+    private val LOCATION_PERMISSION_REQUEST_CODE = 1007
+
 
     private val database = Firebase.database
     private val userID = FirebaseAuth.getInstance().currentUser?.uid
     private val myReference = database.getReference("users").child(userID!!).child("Bird Information")
 
+
     //val storage = Firebase.storage
-    private lateinit var storageRef : StorageReference
-    private var imageUri: Uri?=null
+    private lateinit var storageRef: StorageReference
 
 
     private val cameraRequestCode = 1
     private val galleryRequestCode = 2
 
+    private lateinit var locationClient : FusedLocationProviderClient
+
     private var count = 0
+
+
+    private var imageURL: String? = null
+    private var imageUri: Uri? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAddNewBirdBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        storageRef = FirebaseStorage.getInstance().getReference("Images")
+        navigationBar()
+
 
         textDate = findViewById(R.id.tvDate)
         buttonDate = findViewById(R.id.btnDate)
+
+        locationClient = LocationServices.getFusedLocationProviderClient(this)
+        binding.btnPickIamge.setOnClickListener {
+            galleryCheckPermission()
+
+        }
+        binding.btnCaptureImage.setOnClickListener {
+
+          cameraCheckPermission()        }
+        binding.btnSave.setOnClickListener {
+
+            savingData()
+
+
+        }
+
 
         val calendarBox = Calendar.getInstance()
         val dateBox = DatePickerDialog.OnDateSetListener { datePicker, year, month, day ->
@@ -81,110 +114,138 @@ class AddNewBird : AppCompatActivity() {
                 calendarBox.get(Calendar.DAY_OF_MONTH)
             ).show()
         }
-        val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()){
-            binding.ivImage.setImageURI(it)
-            if(it != null)
-            {
-                imageUri = it
-            }
-        }
-
-
-        binding.btnCamera.setOnClickListener {
-            cameraCheckPermission()
-        }
-
-        binding.btnGallery.setOnClickListener {
-            pickImage.launch("image/*")
-
-            //galleryCheckPermission()
-        }
-        binding.btnSave.setOnClickListener {
-            count++
-            val intent = Intent(this@AddNewBird, ViewBadge :: class.java)
-            intent.putExtra("COUNT", count)
-            UploadData()
-        }
-
-        //when you click on the image
-        binding.ivImage.setOnClickListener{
-            //selectImage.launch("image/*")
-            val pictureDialog = AlertDialog.Builder(this)
-            pictureDialog.setTitle("Select Action")
-            val pictureDialogItem = arrayOf("Select photo from Gallery",
-                "Capture photo from Camera")
-            pictureDialog.setItems(pictureDialogItem){dialog, which ->
-                when(which){
-                    0 -> gallery()
-                    1 -> camera()
-
-
-                }
-
-            }
-            pictureDialog.show()
-        }
 
     }
 
 
-    private fun UploadData() {
 
-        val theBirdName = binding.edBirdName.text.toString()
-        val theBirdSpecies = binding.edBirdSpecies.text.toString()
+    private fun savingData() {
+
+       val storageReference = FirebaseStorage.getInstance().reference.child("Task Image")
+          .child(imageUri!!.lastPathSegment!!)
+
+     val builder = AlertDialog.Builder(this@AddNewBird)
+        builder.setCancelable(false)
+        builder.setView(R.layout.progress_layout)
+        val dialog = builder.create()
+        dialog.show()
+        storageReference.putFile(imageUri!!).addOnSuccessListener { taskSnapshot ->
+            val uriTask = taskSnapshot.storage.downloadUrl
+            while (!uriTask.isComplete);
+            val urlImage = uriTask.result
+            imageURL = urlImage.toString()
+            UploadingData()
+            dialog.dismiss()
+        }.addOnFailureListener {
+            dialog.dismiss()
+        }
+        }
+
+
+    private fun UploadingData() {
+        val name = binding.edBirdName.text.toString()
+        val species = binding.edBirdSpecies.text.toString()
         val date = binding.tvDate.text.toString()
+        var theLocation = ""  // Declare theLocation as a var
 
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+            // Get current location
+            locationClient.lastLocation.addOnSuccessListener { location: Location ->
+                location?.let {
+                    val theData = "${it.longitude}, ${it.latitude}"
 
-        if (binding.edBirdName.text.toString().isEmpty() ||
-            binding.edBirdSpecies.text.toString().isEmpty()
-        )
-        {
-            Toast.makeText(this, "Please enter all fields", Toast.LENGTH_SHORT).show()
-        }
-        else
-        {
+                    theLocation = theData.toString()
 
-            val personId = myReference.push().key!!
-            imageUri?.let {
-                storageRef.child(personId).putFile(it)
-                    .addOnSuccessListener { task ->
-                        task.metadata!!.reference!!.downloadUrl
-                            .addOnSuccessListener { url ->
-                                Toast.makeText(
-                                    this,
-                                    "Image stored successfully",
-                                    Toast.LENGTH_SHORT
-                                )
-                                    .show()
-
-                                val imageURL = url.toString()
-
-
-                                val dataClass = Saving(theBirdName, theBirdSpecies, date, imageURL)
-                                myReference.push().setValue(dataClass).addOnSuccessListener {
-                                    Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show()
-
-
-                                }
-
-                            }
-                    }
+                    // Continue with saving the data here
+                    saveData(name, species, date, theLocation)
+                }
             }
+        } else {
+            locationRequesting()
+        }
+
+        // The rest of your code
+    }
+
+    private fun saveData(name: String, species: String, date: String, theLocation: String) {
+        if (name.isEmpty() || species.isEmpty() || date.isEmpty()) {
+            Toast.makeText(this, "Please enter all fields", Toast.LENGTH_SHORT).show()
+        } else {
+            val saveClass = BirdInfo(name, species, date, imageURL, theLocation)
+             myReference.push().setValue(saveClass)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        Toast.makeText(this@AddNewBird, "Saved", Toast.LENGTH_SHORT).show()
+                    }
+                    val intent = Intent(this, BirdsUi::class.java)
+                    startActivity(intent)
+                }.addOnFailureListener { e ->
+                    Toast.makeText(
+                        this@AddNewBird, e.message.toString(), Toast.LENGTH_SHORT
+                    ).show()
+                }
         }
     }
 
-    private fun galleryCheckPermission(){
+
+    private fun locationRequesting() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+            LOCATION_PERMISSION_REQUEST_CODE
+            )
+
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, proceed with getting location
+                UploadingData()
+            } else {
+                // Permission denied, show a dialog to the user
+                if (shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    AlertDialog.Builder(this)
+                        .setMessage("This app requires location permission to work properly.")
+                        .setPositiveButton("Ask again") { _, _ ->
+                           locationRequesting()
+                        }
+                        .setNegativeButton("Cancel") { dialog, _ ->
+                            dialog.dismiss()
+                        }
+                        .create()
+                        .show()
+                }
+            }
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
+
+
+
+
+    private fun galleryCheckPermission() {
 
         Dexter.withContext(this).withPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
-            .withListener (object : PermissionListener {
+            .withListener(object : PermissionListener {
                 override fun onPermissionGranted(p0: PermissionGrantedResponse?) {
                     gallery()
                 }
 
                 override fun onPermissionDenied(p0: PermissionDeniedResponse?) {
-                    Toast.makeText(this@AddNewBird,
+                    Toast.makeText(
+                        this@AddNewBird,
                         "You have denied the storage permission to select image",
-                        Toast.LENGTH_SHORT).show()
+                        Toast.LENGTH_SHORT
+                    ).show()
                     showRorationalDialogForPermission()
                 }
 
@@ -205,22 +266,21 @@ class AddNewBird : AppCompatActivity() {
         textDate.setText(sdf.format(calendar.time))
     }
 
-    private fun gallery()
-    {
+    private fun gallery() {
         val intent = Intent(Intent.ACTION_PICK)
         intent.type = "image/*"
         startActivityForResult(intent, galleryRequestCode)
     }
-    private fun cameraCheckPermission()
-    {
+
+    private fun cameraCheckPermission() {
         Dexter.withContext(this).withPermissions(
             Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.CAMERA).withListener(
+            Manifest.permission.CAMERA
+        ).withListener(
             object : MultiplePermissionsListener {
                 override fun onPermissionsChecked(report: MultiplePermissionsReport?) {
-                    report?.let{
-                        if(report.areAllPermissionsGranted())
-                        {
+                    report?.let {
+                        if (report.areAllPermissionsGranted()) {
                             camera()
                         }
                     }
@@ -229,7 +289,8 @@ class AddNewBird : AppCompatActivity() {
 
                 override fun onPermissionRationaleShouldBeShown(
                     p0: MutableList<PermissionRequest>?,
-                    p1: PermissionToken?) {
+                    p1: PermissionToken?
+                ) {
                     showRorationalDialogForPermission()
                 }
             }
@@ -237,7 +298,7 @@ class AddNewBird : AppCompatActivity() {
     }
 
 
-    private fun camera(){
+    private fun camera() {
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         startActivityForResult(intent, cameraRequestCode)
     }
@@ -245,11 +306,10 @@ class AddNewBird : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if(resultCode == RESULT_OK)
-        {
-            when(requestCode)
-            {
-                cameraRequestCode->{
+        if (requestCode == 2 && resultCode == RESULT_OK ) {
+
+            when (requestCode) {
+                cameraRequestCode -> {
                     val bitmap = data?.extras?.get("data") as Bitmap
                     binding.ivImage.load(bitmap)
                     {
@@ -257,9 +317,12 @@ class AddNewBird : AppCompatActivity() {
                         crossfade(1000)
                         transformations(CircleCropTransformation())
                     }
+                    this.imageUri = data.data!!
 
                 }
-                galleryRequestCode->{
+
+                galleryRequestCode -> {
+
                     binding.ivImage.load(data?.data)
                     {
                         crossfade(true)
@@ -267,31 +330,59 @@ class AddNewBird : AppCompatActivity() {
                         transformations(CircleCropTransformation())
 
                     }
+                    this.imageUri = data?.data
                 }
             }
         }
     }
 
 
-
-    private fun showRorationalDialogForPermission(){
-        AlertDialog.Builder(this).setMessage("It looks like you have turned off permissions" +
-                "required for this feature. It can be enabled under App settings!!!")
-            .setPositiveButton("Go To SETTINGS"){_,_->
-                try{
+    private fun showRorationalDialogForPermission() {
+        AlertDialog.Builder(this).setMessage(
+            "It looks like you have turned off permissions" +
+                    "required for this feature. It can be enabled under App settings!!!"
+        )
+            .setPositiveButton("Go To SETTINGS") { _, _ ->
+                try {
                     val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                     val uri = Uri.fromParts("package", packageName, null)
                     intent.data = uri
                     startActivity(intent)
-                }
-                catch(e: ActivityNotFoundException){
+                } catch (e: ActivityNotFoundException) {
                     e.printStackTrace()
                 }
             }
-            .setNegativeButton("CANCEL"){dialog,_->
+            .setNegativeButton("CANCEL") { dialog, _ ->
                 dialog.dismiss()
             }.show()
 
 
     }
-}
+
+    fun navigationBar() {
+        //This will account for event clicking of the navigation bar (similar to if statement format)
+        binding.bottomNavigationView.setOnItemSelectedListener { item ->
+            when (item.itemId) {
+                /*
+                R.id.idBirds -> {
+                    val intent = Intent(this, BirdsUi::class.java)
+                    startActivity(intent)
+                }
+                 */
+                R.id.idHome -> {
+                    val intent = Intent(this, MapUI::class.java)
+                    startActivity(intent)
+                }
+
+                R.id.idAccount -> {
+                    val intent = Intent(this, AccountSettings::class.java)
+                    startActivity(intent)
+                }
+
+                else -> {}
+            }
+            true
+        }
+
+    }
+    }

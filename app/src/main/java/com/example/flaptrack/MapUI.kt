@@ -142,6 +142,7 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
                 Log.e("FirebaseData", "Data retrieval failed: $error")
             }
         })
+
     }
 
     //----------------------------------------------------------------------------------------------
@@ -150,6 +151,16 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
         //setting max distance
 
         mMap = googleMap
+
+        //Zoom in Controls
+        mMap?.uiSettings?.apply {
+            isZoomControlsEnabled = true
+            isCompassEnabled = true
+            isRotateGesturesEnabled = true
+            isScrollGesturesEnabled = true
+            isTiltGesturesEnabled = true
+            isZoomGesturesEnabled = true
+        }
 
         // Check for location permissions
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
@@ -174,7 +185,7 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
                     mMap.addMarker(markerOptions)
 
                     // How zoomed in the map will be.
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 8f))
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15f))
 
                     // Initialize NetworkUtil
                     val networkUtil = NetworkUtil()
