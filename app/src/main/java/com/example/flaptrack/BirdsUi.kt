@@ -67,8 +67,8 @@ class BirdsUi : AppCompatActivity() {
         firebaseDatabase = FirebaseDatabase.getInstance()
         databaseReference = theDatabase.getReference("users").child(userID!!).child("Bird Information")
 
-        initialiseRecycleView()
-        getData()
+       // initialiseRecycleView()
+        //getData()
 
 
         MaterialAlertDialogBuilder(this)

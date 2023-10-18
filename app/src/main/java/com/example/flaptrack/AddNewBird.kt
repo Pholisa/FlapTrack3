@@ -81,7 +81,6 @@ class AddNewBird : AppCompatActivity() {
 
         navigationBar()
 
-
         textDate = findViewById(R.id.tvDate)
         buttonDate = findViewById(R.id.btnDate)
 
