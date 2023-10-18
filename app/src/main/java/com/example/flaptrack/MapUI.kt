@@ -176,7 +176,7 @@ class MapUI : FragmentActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickLis
                     mMap.addMarker(markerOptions)
 
                     // How zoomed in the map will be.
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 8f))
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, 15f))
 
                     // Initialize NetworkUtil
                     val networkUtil = NetworkUtil()
